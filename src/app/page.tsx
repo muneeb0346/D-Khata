@@ -33,20 +33,21 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <div className="flex-col h-full layout-container">
+    <main className="flex-col h-full layout-container">
+      <h1 className="sr-only">D-Khata Merchant Dashboard</h1>
 
       {view === 'list' && (
         <>
-          <div className="p-md layout-header">
+          <header className="p-md layout-header" role="banner">
             D-Khata Dashboard
-          </div>
+          </header>
           <CustomerList
             customers={customers}
             onSelectCustomer={handleSelectCustomer}
           />
-          <div className="sticky-bottom">
+          <footer className="sticky-bottom">
             <Button onClick={() => setView('new')}>Add New Customer</Button>
-          </div>
+          </footer>
         </>
       )}
 
@@ -64,6 +65,6 @@ export default function Dashboard() {
         />
       )}
 
-    </div>
+    </main>
   );
 }

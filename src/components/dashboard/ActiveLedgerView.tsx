@@ -66,35 +66,36 @@ export function ActiveLedgerView({ customerId, onBack }: Props) {
     alert('Customer information copied to clipboard for filing a case.');
   };
 
-  if (loading || !ledgerData) return <div className="p-md">Loading...</div>;
+  if (loading || !ledgerData) return <div className="p-md" aria-busy="true">Loading...</div>;
 
   const { customer, transactions, pendingTransaction } = ledgerData;
   const isLocked = !!pendingTransaction;
 
   return (
-    <div className="flex-col h-full">
-      <div className={styles.header}>
-        <Button variant="secondary" onClick={onBack} className="w-auto">← Back</Button>
+    <article className="flex-col h-full" aria-live="polite">
+      <header className={styles.header}>
+        <Button variant="secondary" onClick={onBack} className="w-auto" aria-label="Go back to customer list">← Back</Button>
         <div className="flex-col items-center">
           <h2 className={styles.name}>{customer.name}</h2>
           <span className={`${styles.balance} ${customer.totalBalance < 0 ? styles.advance : styles.debt}`}>
             Balance: Rs. {Math.abs(customer.totalBalance)} {customer.totalBalance < 0 ? '(Adv)' : '(Debt)'}
           </span>
         </div>
-        <Button variant="secondary" onClick={handleShare} className="w-auto">Share</Button>
-      </div>
+        <Button variant="secondary" onClick={handleShare} className="w-auto" aria-label="Share ledger link via clipboard">Share</Button>
+      </header>
 
-      <div className={styles.txnsContainer}>
+      <section className={styles.txnsContainer} aria-label="Transactions">
         {isLocked && (
-          <div className={styles.lockedBanner}>
+          <div className={styles.lockedBanner} role="alert">
             Account Locked: Awaiting customer verification for a pending transaction.
           </div>
         )}
 
+        <h3 className="sr-only">Transaction List</h3>
         {transactions.length === 0 ? (
           <p className="p-md text-center text-muted">No transactions yet.</p>
         ) : (
-          <ul className="flex-col gap-sm p-md">
+          <ul className="flex-col gap-sm p-md" role="list">
             {transactions.map((t: any) => (
               <li key={t.id} className={`${styles.txnCard} ${t.approval === 'PENDING' ? styles.pendingCard : ''}`}>
                 <div className="flex-row justify-between">
@@ -112,37 +113,37 @@ export function ActiveLedgerView({ customerId, onBack }: Props) {
           </ul>
         )}
 
-        <div className="p-md pb-0">
+        <section className="p-md pb-0" aria-label="Customer details">
           <h3 className={styles.sectionTitle}>Customer Details</h3>
-          <div className={styles.txnCard}>
-            <div className="flex-col gap-sm">
-              <div><span className="text-muted">Name:</span> {customer.name}</div>
-              <div><span className="text-muted">Phone:</span> {customer.phone}</div>
-              <div><span className="text-muted">CNIC:</span> {customer.cnic || 'N/A'}</div>
-              <div><span className="text-muted">Address:</span> {customer.address || 'N/A'}</div>
-              <div className="mt-md">
-                <Button variant="secondary" onClick={handleFileCase}>Copy Details to File Case</Button>
-              </div>
+          <dl className={`${styles.txnCard} flex-col gap-sm`}>
+            <div><dt className="text-muted">Name:</dt> <dd>{customer.name}</dd></div>
+            <div><dt className="text-muted">Phone:</dt> <dd>{customer.phone}</dd></div>
+            <div><dt className="text-muted">CNIC:</dt> <dd>{customer.cnic || 'N/A'}</dd></div>
+            <div><dt className="text-muted">Address:</dt> <dd>{customer.address || 'N/A'}</dd></div>
+            <div className="mt-md">
+              <Button variant="secondary" onClick={handleFileCase} aria-label="Copy customer details to clipboard for filing a case">Copy Details to File Case</Button>
             </div>
-          </div>
-        </div>
-      </div>
+          </dl>
+        </section>
+      </section>
 
-      <div className={`flex-row gap-md sticky-bottom`}>
+      <footer className="flex-row gap-md sticky-bottom">
         <Button
           variant="danger"
           onClick={handleAddCredit}
           disabled={isLocked}
+          aria-label={isLocked ? 'Cannot add credit while account is locked' : 'Add a new credit transaction'}
         >
           Add Credit
         </Button>
         <Button
           variant="primary"
           onClick={handleReceivePay}
+          aria-label="Record a payment received from customer"
         >
           Receive Pay
         </Button>
-      </div>
-    </div>
+      </footer>
+    </article>
   );
 }

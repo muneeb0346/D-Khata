@@ -16,7 +16,7 @@ const CHART_HEIGHT = 200;
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className={styles.tooltip}>
+      <div className={styles.tooltip} role="tooltip">
         <p className={styles.tooltipLabel}>{label}</p>
         <p className={styles.tooltipValue}>Rs. {payload[0].value}</p>
       </div>
@@ -39,7 +39,7 @@ export function BalanceGraph({ transactions }: Props) {
   });
 
   return (
-    <div className={styles.container}>
+    <figure className={styles.container} aria-label="Balance history over time">
       <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
         <AreaChart data={data} margin={CHART_MARGIN}>
           <defs>
@@ -54,6 +54,6 @@ export function BalanceGraph({ transactions }: Props) {
           <Area type="monotone" dataKey="balance" stroke="var(--color-primary)" fillOpacity="var(--opacity-full)" fill="url(#colorBalance)" />
         </AreaChart>
       </ResponsiveContainer>
-    </div>
+    </figure>
   );
 }

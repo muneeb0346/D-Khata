@@ -41,17 +41,17 @@ export default function PublicKhata() {
     }
   };
 
-  if (loading || !ledgerData) return <div className="p-md text-center">Loading...</div>;
+  if (loading || !ledgerData) return <main className="p-md text-center" aria-busy="true">Loading...</main>;
 
   const { customer, transactions, pendingTransaction } = ledgerData;
 
   return (
-    <div className="layout-container flex-col">
-      <div className="layout-header p-md">
-        {customer.name}&apos;s Ledger
-      </div>
+    <main className="layout-container flex-col" aria-live="polite">
+      <header className="layout-header p-md" role="banner">
+        <h1 className="m-0">{customer.name}&apos;s Ledger</h1>
+      </header>
 
-      <div className={styles.content}>
+      <section className={styles.content} aria-label="Ledger overview">
         <div className={styles.balanceHeader}>
           <span className="text-muted">Current Balance</span>
           <h2 className={`${styles.balance} ${customer.totalBalance < 0 ? styles.advance : styles.debt}`}>
@@ -59,16 +59,21 @@ export default function PublicKhata() {
           </h2>
         </div>
 
-        <BalanceGraph transactions={transactions} />
+        <section aria-label="Balance history chart">
+          <h3 className="sr-only">Balance History</h3>
+          <BalanceGraph transactions={transactions} />
+        </section>
 
-        <h3 className={`${styles.sectionTitle} pb-0`}>Transaction History</h3>
-        <TransactionList transactions={transactions} />
-      </div>
+        <section aria-label="Transaction history">
+          <h3 className={`${styles.sectionTitle} pb-0`}>Transaction History</h3>
+          <TransactionList transactions={transactions} />
+        </section>
+      </section>
 
       {pendingTransaction && (
-        <div className={styles.stickyBanner}>
+        <aside className={styles.stickyBanner} role="alert" aria-live="assertive">
           <div className="flex-col gap-sm">
-            <h4 className={`${styles.bannerTitle} m-0`}>Action Required</h4>
+            <h3 className={`${styles.bannerTitle} m-0`}>Action Required</h3>
             <p className={styles.bannerText}>
               The merchant added a new transaction:
               <strong> {pendingTransaction.description} </strong>
@@ -76,12 +81,12 @@ export default function PublicKhata() {
               Do you verify this?
             </p>
             <div className="flex-row gap-md mt-md">
-              <Button variant="danger" onClick={() => handleResolve('DISPUTED')}>Reject</Button>
-              <Button variant="primary" onClick={() => handleResolve('VERIFIED')}>Verify &amp; Accept</Button>
+              <Button variant="danger" onClick={() => handleResolve('DISPUTED')} aria-label="Reject pending transaction">Reject</Button>
+              <Button variant="primary" onClick={() => handleResolve('VERIFIED')} aria-label="Verify and accept pending transaction">Verify &amp; Accept</Button>
             </div>
           </div>
-        </div>
+        </aside>
       )}
-    </div>
+    </main>
   );
 }

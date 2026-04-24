@@ -20,17 +20,22 @@ export const CustomerList = React.memo(function CustomerList({ customers, onSele
   }, [customers, searchTerm]);
 
   return (
-    <div className={styles.listContainer}>
+    <section className={styles.listContainer} aria-label="Customer list" aria-live="polite">
       <h2 className={styles.title}>Your Customers</h2>
 
       {customers.length > 0 && (
-        <input
-          type="search"
-          placeholder="Search by Name, Phone, or CNIC..."
-          className={styles.searchInput}
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
+        <search>
+          <label htmlFor="customer-search" className="sr-only">Search customers</label>
+          <input
+            id="customer-search"
+            type="search"
+            placeholder="Search by Name, Phone, or CNIC..."
+            className={styles.searchInput}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            aria-label="Search customers by name, phone, or CNIC"
+          />
+        </search>
       )}
 
       {filteredCustomers.length === 0 ? (
@@ -38,12 +43,16 @@ export const CustomerList = React.memo(function CustomerList({ customers, onSele
           {customers.length === 0 ? "No customers yet. Add one to get started!" : "No customers match your search."}
         </p>
       ) : (
-        <ul className={styles.list}>
+        <ul className={styles.list} role="list">
           {filteredCustomers.map((c) => (
             <li
               key={c.id}
               className={styles.listItem}
               onClick={() => onSelectCustomer(c.id)}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSelectCustomer(c.id); }}
+              role="button"
+              tabIndex={0}
+              aria-label={`View ledger for ${c.name}, balance Rs. ${Math.abs(c.totalBalance)}`}
             >
               <div className="flex-col">
                 <span className={styles.name}>{c.name}</span>
@@ -57,6 +66,6 @@ export const CustomerList = React.memo(function CustomerList({ customers, onSele
           ))}
         </ul>
       )}
-    </div>
+    </section>
   );
 });

@@ -74,26 +74,29 @@ export function NewCustomerForm({ onCancel, onSuccess }: Props) {
   };
 
   return (
-    <div className={styles.container}>
+    <section className={styles.container} aria-label="New customer form">
       <h2 className={styles.title}>New Customer</h2>
 
-      {error && <div className={styles.errorBanner}>{error}</div>}
+      {error && <div className={styles.errorBanner} role="alert" aria-live="assertive">{error}</div>}
 
-      <form onSubmit={handleSubmit} className="flex-col gap-md">
+      <form onSubmit={handleSubmit} className="flex-col gap-md" noValidate>
         <div className="flex-col gap-sm">
-          <label className={styles.label}>Name *</label>
+          <label htmlFor="field-name" className={styles.label}>Name *</label>
           <input
+            id="field-name"
             required
             name="name"
             className={styles.input}
             placeholder="Ali Khan"
             value={name}
             onChange={(e) => setName(sanitizeName(e.target.value))}
+            autoComplete="name"
           />
         </div>
         <div className="flex-col gap-sm">
-          <label className={styles.label}>Phone (WhatsApp) *</label>
+          <label htmlFor="field-phone" className={styles.label}>Phone (WhatsApp) *</label>
           <input
+            id="field-phone"
             required
             name="phone"
             type="tel"
@@ -102,29 +105,32 @@ export function NewCustomerForm({ onCancel, onSuccess }: Props) {
             value={phone}
             maxLength={PHONE_LENGTH}
             onChange={(e) => setPhone(sanitizePhone(e.target.value))}
+            autoComplete="tel"
           />
         </div>
         <div className="flex-col gap-sm">
-          <label className={styles.label}>Address (Optional)</label>
-          <input name="address" className={styles.input} placeholder="House 1, Street 2" />
+          <label htmlFor="field-address" className={styles.label}>Address (Optional)</label>
+          <input id="field-address" name="address" className={styles.input} placeholder="House 1, Street 2" autoComplete="street-address" />
         </div>
         <div className="flex-col gap-sm">
-          <label className={styles.label}>CNIC (Optional)</label>
+          <label htmlFor="field-cnic" className={styles.label}>CNIC (Optional)</label>
           <input
+            id="field-cnic"
             name="cnic"
             className={styles.input}
             placeholder="12345-1234567-1"
             value={cnic}
             maxLength={CNIC_MAX_LENGTH}
             onChange={(e) => setCnic(formatCnic(e.target.value))}
+            inputMode="numeric"
           />
         </div>
 
         <div className={`flex-row gap-md ${styles.actions}`}>
           <Button type="button" variant="secondary" onClick={onCancel}>Cancel</Button>
-          <Button type="submit" disabled={loading}>{loading ? 'Saving...' : 'Save Customer'}</Button>
+          <Button type="submit" disabled={loading} aria-busy={loading}>{loading ? 'Saving...' : 'Save Customer'}</Button>
         </div>
       </form>
-    </div>
+    </section>
   );
 }
