@@ -252,3 +252,6 @@ export async function processPayment(customerId: string, amount: number) {
     };
   });
 }
+export async function getCustomers() {
+  return await db.query.customers.findMany();
+}

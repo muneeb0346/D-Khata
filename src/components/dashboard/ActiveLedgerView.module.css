@@ -1,0 +1,55 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md);
+  background: var(--color-surface);
+  border-bottom: var(--border-width-sm) solid var(--color-border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.name {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+}
+
+.balance {
+  font-weight: var(--font-weight-semibold);
+}
+
+.debt {
+  color: var(--color-danger);
+}
+
+.advance {
+  color: var(--color-primary);
+}
+
+.txnsContainer {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--color-bg);
+}
+
+.lockedBanner {
+  background-color: var(--color-warning);
+  color: var(--color-surface);
+  padding: var(--spacing-sm) var(--spacing-md);
+  text-align: center;
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
+}
+
+.txnCard {
+  background: var(--color-surface);
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  border: var(--border-width-sm) solid var(--color-border);
+}
+
+.pendingCard {
+  border: var(--border-width-md) solid var(--color-warning);
+}

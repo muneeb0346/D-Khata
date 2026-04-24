@@ -1,0 +1,115 @@
+/*
+  A modern, sensible CSS reset.
+  Based on the work of Andy Bell, Josh Comeau, and others.
+*/
+
+/* 1. Use a more intuitive box-sizing model. */
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* 2. Remove default margin from everything. */
+/* Using :where() keeps specificity at 0, so you can easily override these later. */
+:where(body, h1, h2, h3, h4, h5, h6, p, ul, ol, li, figure, figcaption, blockquote, dl, dd) {
+    width: fit-content;
+    margin: 0;
+}
+
+ul,
+ol {
+    list-style-type: none;
+}
+
+/* 3. Set core body defaults */
+html,
+body {
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    scroll-behavior: smooth;
+    text-rendering: optimizeSpeed;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+}
+
+/* 4. Remove list styles on ul, ol elements with a list role, which suggests they are for navigation or layout. */
+:where(ul[role=list], ol[role=list]) {
+    list-style: none;
+    padding: 0;
+}
+
+/* 5. Make images, videos and other media easier to work with. */
+img,
+picture,
+video,
+canvas,
+svg {
+    display: block;
+    max-width: 100%;
+}
+
+/* 6. Inherit fonts for form inputs and buttons */
+a,
+input,
+button,
+textarea,
+select {
+    font: inherit;
+    color: inherit;
+    border: none;
+    background: none;
+    text-decoration: none;
+}
+
+a,
+button {
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* 7. Remove all animations and transitions for people that prefer not to see them. */
+@media (prefers-reduced-motion: reduce) {
+    html:focus-within {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* 8. Avoid text overflows */
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    overflow-wrap: break-word;
+}
+
+/* 9. Create a root stacking context */
+/* This is useful for more complex layouts with z-index. */
+#root,
+#__next {
+    isolation: isolate;
+}
