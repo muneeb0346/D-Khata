@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { CustomerList } from '@/components/dashboard/CustomerList';
 import { NewCustomerForm } from '@/components/dashboard/NewCustomerForm';
 import { ActiveLedgerView } from '@/components/dashboard/ActiveLedgerView';
@@ -27,6 +27,11 @@ export default function Dashboard() {
     }
   }, [view]);
 
+  const handleSelectCustomer = useCallback((id: string) => {
+    setSelectedCustomerId(id);
+    setView('ledger');
+  }, []);
+
   return (
     <div className="flex-col h-full layout-container">
 
@@ -37,10 +42,7 @@ export default function Dashboard() {
           </div>
           <CustomerList
             customers={customers}
-            onSelectCustomer={(id) => {
-              setSelectedCustomerId(id);
-              setView('ledger');
-            }}
+            onSelectCustomer={handleSelectCustomer}
           />
           <div className="sticky-bottom">
             <Button onClick={() => setView('new')}>Add New Customer</Button>
