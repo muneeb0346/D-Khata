@@ -6,9 +6,9 @@ export const settlementEnum = pgEnum('settlement_status', ['UNPAID', 'PARTIAL', 
 export const customers = pgTable('customers', {
     id: text('id').primaryKey(),
     name: text('name').notNull(),
-    phone: text('phone').notNull(),
+    phone: text('phone').notNull().unique(),
     address: text('address'),
-    cnic: text('cnic'),
+    cnic: text('cnic').unique(),
     totalBalance: integer('total_balance').default(0),
     createdAt: timestamp('created_at').defaultNow(),
 });
