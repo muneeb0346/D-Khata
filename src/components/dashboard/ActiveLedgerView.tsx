@@ -60,6 +60,12 @@ export function ActiveLedgerView({ customerId, onBack }: Props) {
     }
   };
 
+  const handleFileCase = () => {
+    const caseInfo = `CUSTOMER CASE INFORMATION\n-------------------------\nName: ${ledgerData?.customer?.name}\nPhone: ${ledgerData?.customer?.phone}\nCNIC: ${ledgerData?.customer?.cnic || 'Not Provided'}\nAddress: ${ledgerData?.customer?.address || 'Not Provided'}\n\nTotal Balance: Rs. ${Math.abs(ledgerData?.customer?.totalBalance)} ${ledgerData?.customer?.totalBalance < 0 ? '(Advance)' : '(Debt)'}\n\nPlease proceed with necessary actions.`;
+    navigator.clipboard.writeText(caseInfo);
+    alert('Customer information copied to clipboard for filing a case.');
+  };
+
   if (loading || !ledgerData) return <div className="p-md">Loading...</div>;
 
   const { customer, transactions, pendingTransaction } = ledgerData;
@@ -105,6 +111,21 @@ export function ActiveLedgerView({ customerId, onBack }: Props) {
             ))}
           </ul>
         )}
+
+        <div className="p-md pb-0">
+          <h3 className={styles.sectionTitle}>Customer Details</h3>
+          <div className={styles.txnCard}>
+            <div className="flex-col gap-sm">
+              <div><span className="text-muted">Name:</span> {customer.name}</div>
+              <div><span className="text-muted">Phone:</span> {customer.phone}</div>
+              <div><span className="text-muted">CNIC:</span> {customer.cnic || 'N/A'}</div>
+              <div><span className="text-muted">Address:</span> {customer.address || 'N/A'}</div>
+              <div className="mt-md">
+                <Button variant="secondary" onClick={handleFileCase}>Copy Details to File Case</Button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className={`flex-row gap-md sticky-bottom`}>

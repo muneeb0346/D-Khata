@@ -53,3 +53,11 @@
 .pendingCard {
   border: var(--border-width-md) solid var(--color-warning);
 }
+
+.sectionTitle {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--spacing-md);
+  margin-top: var(--spacing-xl);
+  color: var(--color-text-main);
+}
