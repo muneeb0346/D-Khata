@@ -74,12 +74,12 @@ export function NewCustomerForm({ onCancel, onSuccess }: Props) {
   };
 
   return (
-    <section className={styles.container} aria-label="New customer form">
+    <section className={`${styles.container} flex-col h-full`} aria-label="New customer form">
       <h2 className={styles.title}>New Customer</h2>
 
       {error && <div className={styles.errorBanner} role="alert" aria-live="assertive">{error}</div>}
 
-      <form onSubmit={handleSubmit} className="flex-col gap-md" noValidate>
+      <form id="new-customer-form" onSubmit={handleSubmit} className={`${styles.form} flex-col gap-md`} noValidate>
         <div className="flex-col gap-sm">
           <label htmlFor="field-name" className={styles.label}>Name *</label>
           <input
@@ -125,12 +125,12 @@ export function NewCustomerForm({ onCancel, onSuccess }: Props) {
             inputMode="numeric"
           />
         </div>
-
-        <div className={`flex-row gap-md ${styles.actions}`}>
-          <Button type="button" variant="secondary" onClick={onCancel}>Cancel</Button>
-          <Button type="submit" disabled={loading} aria-busy={loading}>{loading ? 'Saving...' : 'Save Customer'}</Button>
-        </div>
       </form>
+
+      <footer className="flex-row gap-md sticky-bottom">
+        <Button type="button" variant="secondary" onClick={onCancel}>Cancel</Button>
+        <Button type="submit" form="new-customer-form" disabled={loading} aria-busy={loading}>{loading ? 'Adding...' : 'Add Customer'}</Button>
+      </footer>
     </section>
   );
 }

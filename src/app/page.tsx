@@ -33,7 +33,7 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <main className="flex-col h-full layout-container">
+    <main className="flex-col w-full h-full layout-container">
       <h1 className="sr-only">D-Khata Merchant Dashboard</h1>
 
       {view === 'list' && (

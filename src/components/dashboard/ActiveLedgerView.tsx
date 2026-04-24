@@ -74,14 +74,16 @@ export function ActiveLedgerView({ customerId, onBack }: Props) {
   return (
     <article className="flex-col h-full" aria-live="polite">
       <header className={styles.header}>
-        <Button variant="secondary" onClick={onBack} className="w-auto" aria-label="Go back to customer list">← Back</Button>
-        <div className="flex-col items-center">
+        <div className="flex-row justify-between gap-md">
+          <Button variant="secondary" onClick={onBack} className="w-auto" aria-label="Go back to customer list">← Back</Button>
+          <Button variant="secondary" onClick={handleShare} className="w-auto" aria-label="Share ledger link via clipboard">Share</Button>
+        </div>
+        <div className="flex-col">
           <h2 className={styles.name}>{customer.name}</h2>
           <span className={`${styles.balance} ${customer.totalBalance < 0 ? styles.advance : styles.debt}`}>
             Balance: Rs. {Math.abs(customer.totalBalance)} {customer.totalBalance < 0 ? '(Adv)' : '(Debt)'}
           </span>
         </div>
-        <Button variant="secondary" onClick={handleShare} className="w-auto" aria-label="Share ledger link via clipboard">Share</Button>
       </header>
 
       <section className={styles.txnsContainer} aria-label="Transactions">
@@ -95,7 +97,7 @@ export function ActiveLedgerView({ customerId, onBack }: Props) {
         {transactions.length === 0 ? (
           <p className="p-md text-center text-muted">No transactions yet.</p>
         ) : (
-          <ul className="flex-col gap-sm p-md" role="list">
+          <ul className="flex-col gap-sm p-md w-full" role="list">
             {transactions.map((t: any) => (
               <li key={t.id} className={`${styles.txnCard} ${t.approval === 'PENDING' ? styles.pendingCard : ''}`}>
                 <div className="flex-row justify-between">
