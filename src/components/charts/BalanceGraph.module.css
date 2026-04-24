@@ -1,0 +1,26 @@
+.container {
+  width: 100%;
+  height: var(--chart-height);
+  margin-bottom: var(--spacing-xl);
+}
+
+.tooltip {
+  background-color: var(--color-surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: var(--border-width-sm) solid var(--color-border);
+}
+
+.tooltipLabel {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.tooltipValue {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+  margin: 0;
+}

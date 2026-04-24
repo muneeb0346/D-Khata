@@ -1,0 +1,59 @@
+'use client';
+
+import React from 'react';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import styles from './BalanceGraph.module.css';
+
+interface Props {
+  transactions: any[];
+}
+
+const CHART_MARGIN = { top: 10, right: 0, left: 0, bottom: 0 };
+const CHART_TICK_GAP = 20;
+const CHART_Y_AXIS_WIDTH = 40;
+const CHART_HEIGHT = 200;
+
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className={styles.tooltip}>
+        <p className={styles.tooltipLabel}>{label}</p>
+        <p className={styles.tooltipValue}>Rs. {payload[0].value}</p>
+      </div>
+    );
+  }
+  return null;
+};
+
+export function BalanceGraph({ transactions }: Props) {
+  let balance = 0;
+  const data = transactions.map(t => {
+    if (t.approval === 'VERIFIED') {
+      if (t.type === 'CREDIT') balance += t.originalAmount;
+      if (t.type === 'PAYMENT') balance -= t.originalAmount;
+    }
+    return {
+      date: new Date(t.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+      balance,
+    };
+  });
+
+  return (
+    <div className={styles.container}>
+      <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
+        <AreaChart data={data} margin={CHART_MARGIN}>
+          <defs>
+            <linearGradient id="colorBalance" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="var(--color-primary)" stopOpacity="var(--opacity-low)" />
+              <stop offset="95%" stopColor="var(--color-primary)" stopOpacity="var(--opacity-transparent)" />
+            </linearGradient>
+          </defs>
+          <XAxis dataKey="date" fontSize="var(--font-size-xs)" tickLine={false} axisLine={false} minTickGap={CHART_TICK_GAP} />
+          <YAxis fontSize="var(--font-size-xs)" tickLine={false} axisLine={false} width={CHART_Y_AXIS_WIDTH} />
+          <Tooltip content={<CustomTooltip />} />
+          <Area type="monotone" dataKey="balance" stroke="var(--color-primary)" fillOpacity="var(--opacity-full)" fill="url(#colorBalance)" />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
