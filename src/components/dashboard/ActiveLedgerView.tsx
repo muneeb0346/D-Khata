@@ -1,5 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
+import { AddCreditForm } from '@/components/dashboard/AddCreditForm';
+import { ReceivePayForm } from '@/components/dashboard/ReceivePayForm';
 import styles from './ActiveLedgerView.module.css';
 import { getLedger, addPendingCredit, processPayment } from '@/server/actions';
 
@@ -11,6 +13,7 @@ interface Props {
 export function ActiveLedgerView({ customerId, onBack }: Props) {
   const [ledgerData, setLedgerData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [activeForm, setActiveForm] = useState<'credit' | 'pay' | null>(null);
 
   const fetchLedger = async () => {
     setLoading(true);
@@ -34,26 +37,20 @@ export function ActiveLedgerView({ customerId, onBack }: Props) {
     alert('Link copied to clipboard!');
   };
 
-  const handleAddCredit = async () => {
-    const amount = prompt("Enter credit amount (Rs):");
-    if (!amount || isNaN(Number(amount))) return;
-    const desc = prompt("Enter description:");
-    if (!desc) return;
-
+  const handleCreditSubmit = async (data: { amount: number; description: string }) => {
     try {
-      await addPendingCredit(customerId, { amount: Number(amount), description: desc });
+      await addPendingCredit(customerId, data);
+      setActiveForm(null);
       fetchLedger();
     } catch (e: any) {
       alert(e.message);
     }
   };
 
-  const handleReceivePay = async () => {
-    const amount = prompt("Enter payment amount (Rs):");
-    if (!amount || isNaN(Number(amount))) return;
-
+  const handlePaySubmit = async (amount: number) => {
     try {
-      await processPayment(customerId, Number(amount));
+      await processPayment(customerId, amount);
+      setActiveForm(null);
       fetchLedger();
     } catch (e: any) {
       alert(e.message);
@@ -132,7 +129,7 @@ export function ActiveLedgerView({ customerId, onBack }: Props) {
       <footer className="flex-row gap-md sticky-bottom">
         <Button
           variant="danger"
-          onClick={handleAddCredit}
+          onClick={() => setActiveForm('credit')}
           disabled={isLocked}
           aria-label={isLocked ? 'Cannot add credit while account is locked' : 'Add a new credit transaction'}
         >
@@ -140,12 +137,20 @@ export function ActiveLedgerView({ customerId, onBack }: Props) {
         </Button>
         <Button
           variant="primary"
-          onClick={handleReceivePay}
+          onClick={() => setActiveForm('pay')}
           aria-label="Record a payment received from customer"
         >
           Receive Pay
         </Button>
       </footer>
+
+      {activeForm === 'credit' && (
+        <AddCreditForm onSubmit={handleCreditSubmit} onCancel={() => setActiveForm(null)} />
+      )}
+
+      {activeForm === 'pay' && (
+        <ReceivePayForm onSubmit={handlePaySubmit} onCancel={() => setActiveForm(null)} />
+      )}
     </article>
   );
 }

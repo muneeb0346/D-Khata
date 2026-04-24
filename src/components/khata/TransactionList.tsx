@@ -1,8 +1,18 @@
-import React from 'react';
 import styles from './TransactionList.module.css';
 
+interface Transaction {
+  id: string;
+  description: string;
+  date: string;
+  type: 'CREDIT' | 'PAYMENT';
+  originalAmount: number;
+  remainingBalance: number;
+  settlement: 'UNPAID' | 'PARTIAL' | 'SETTLED' | 'ADVANCE';
+  approval: 'PENDING' | 'VERIFIED' | 'DISPUTED';
+}
+
 interface Props {
-  transactions: any[];
+  transactions: Transaction[];
 }
 
 export function TransactionList({ transactions }: Props) {
@@ -11,28 +21,41 @@ export function TransactionList({ transactions }: Props) {
   }
 
   return (
-    <ul className={styles.list}>
-      {transactions.map(t => {
-        const isSettled = t.settlement === 'SETTLED';
-        const isPartial = t.settlement === 'PARTIAL';
+    <ul className={styles.list} role="list">
+      {transactions.map(({ id, description, date, type, originalAmount, remainingBalance, settlement }) => {
+        const isSettled = settlement === 'SETTLED';
+        const isPartial = settlement === 'PARTIAL';
+        const isUnpaid = settlement === 'UNPAID' && type === 'CREDIT';
+
+        const cardClass = [
+          styles.card,
+          isSettled ? styles.settled : '',
+          isUnpaid ? styles.unpaid : '',
+        ].filter(Boolean).join(' ');
 
         return (
-          <li key={t.id} className={`${styles.card} ${isSettled ? styles.settled : ''}`}>
+          <li key={id} className={cardClass} aria-label={`${description}, ${type === 'CREDIT' ? '+' : '-'}Rs. ${originalAmount}, ${settlement}`}>
             <div className="flex-row justify-between items-center">
               <div>
-                <div className={styles.desc}>{t.description}</div>
-                <div className={styles.date}>{new Date(t.date).toLocaleDateString()}</div>
+                <div className={styles.desc}>{description}</div>
+                <time className={styles.date} dateTime={new Date(date).toISOString()}>
+                  {new Date(date).toLocaleDateString()}
+                </time>
               </div>
               <div className="flex-col items-end">
-                <div className={`${styles.amount} ${t.type === 'CREDIT' ? styles.debt : styles.advance}`}>
-                  {t.type === 'CREDIT' ? '+' : '-'}Rs. {t.originalAmount}
+                <div className={`${styles.amount} ${type === 'CREDIT' ? styles.debt : styles.advance}`}>
+                  {type === 'CREDIT' ? '+' : '-'}Rs. {originalAmount}
                 </div>
-                {t.type === 'CREDIT' && !isSettled && (
-                  <div className={styles.remaining}>
-                    {isPartial ? `Rs. ${t.remainingBalance} left` : 'Unpaid'}
+                {isSettled && <span className={styles.settledBadge}>Settled</span>}
+                {isUnpaid && <span className={styles.unpaidBadge}>Unpaid</span>}
+                {isPartial && (
+                  <div className={styles.partialContainer}>
+                    <span className={styles.partialText}>Rs. {remainingBalance} left</span>
+                    <div className={styles.progressTrack} role="progressbar" aria-valuenow={originalAmount - remainingBalance} aria-valuemin={0} aria-valuemax={originalAmount}>
+                      <div className={styles.progressFill} style={{ width: `${((originalAmount - remainingBalance) / originalAmount) * 100}%` }} />
+                    </div>
                   </div>
                 )}
-                {isSettled && <div className={styles.settledBadge}>Settled</div>}
               </div>
             </div>
           </li>

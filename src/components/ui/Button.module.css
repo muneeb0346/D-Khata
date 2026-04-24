@@ -5,10 +5,17 @@
   padding: var(--spacing-sm) var(--spacing-md);
   border-radius: var(--radius-md);
   font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-md);
   border: none;
   cursor: pointer;
   width: 100%;
+  min-height: var(--tap-target-min);
   box-shadow: var(--shadow-sm);
+}
+
+.btn:focus-visible {
+  outline: var(--border-width-md) solid var(--color-primary);
+  outline-offset: var(--border-width-md);
 }
 
 .btn:disabled {

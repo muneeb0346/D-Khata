@@ -36,7 +36,7 @@ export default function Dashboard() {
     <main className="flex-col w-full h-full layout-container">
       <h1 className="sr-only">D-Khata Merchant Dashboard</h1>
 
-      {view === 'list' && (
+      {(view === 'list' || view === 'new') && (
         <>
           <header className="p-md layout-header" role="banner">
             D-Khata Dashboard

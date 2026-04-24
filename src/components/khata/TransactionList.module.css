@@ -19,6 +19,10 @@
   background: var(--color-bg);
 }
 
+.unpaid {
+  border-left: var(--border-width-md) solid var(--color-danger);
+}
+
 .desc {
   font-weight: var(--font-weight-semibold);
   font-size: var(--font-size-md);
@@ -29,6 +33,7 @@
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
   margin-top: var(--spacing-xs);
+  display: block;
 }
 
 .amount {
@@ -44,16 +49,45 @@
   color: var(--color-primary);
 }
 
-.remaining {
-  font-size: var(--font-size-xs);
-  color: var(--color-warning);
-  font-weight: var(--font-weight-semibold);
-  margin-top: var(--spacing-xs);
-}
-
 .settledBadge {
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);
   font-weight: var(--font-weight-semibold);
   margin-top: var(--spacing-xs);
+}
+
+.unpaidBadge {
+  font-size: var(--font-size-xs);
+  color: var(--color-danger);
+  font-weight: var(--font-weight-bold);
+  margin-top: var(--spacing-xs);
+}
+
+.partialContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-xs);
+}
+
+.partialText {
+  font-size: var(--font-size-xs);
+  color: var(--color-warning);
+  font-weight: var(--font-weight-semibold);
+}
+
+.progressTrack {
+  width: 100%;
+  min-width: var(--tap-target-min);
+  height: var(--spacing-xs);
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: var(--radius-full);
 }
