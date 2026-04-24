@@ -22,7 +22,7 @@ export function TransactionList({ transactions }: Props) {
 
   return (
     <ul className={styles.list} role="list">
-      {transactions.map(({ id, description, date, type, originalAmount, remainingBalance, settlement }) => {
+      {[...transactions].reverse().map(({ id, description, date, type, originalAmount, remainingBalance, settlement }) => {
         const isSettled = settlement === 'SETTLED';
         const isPartial = settlement === 'PARTIAL';
         const isUnpaid = settlement === 'UNPAID' && type === 'CREDIT';
@@ -39,7 +39,7 @@ export function TransactionList({ transactions }: Props) {
               <div>
                 <div className={styles.desc}>{description}</div>
                 <time className={styles.date} dateTime={new Date(date).toISOString()}>
-                  {new Date(date).toLocaleDateString()}
+                  {new Date(date).toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                 </time>
               </div>
               <div className="flex-col items-end">

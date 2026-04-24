@@ -44,7 +44,7 @@ export const CustomerList = React.memo(function CustomerList({ customers, onSele
         </p>
       ) : (
         <ul className={styles.list} role="list">
-          {filteredCustomers.map((c) => (
+          {[...filteredCustomers].reverse().map((c) => (
             <li
               key={c.id}
               className={styles.listItem}

@@ -95,7 +95,7 @@ export function ActiveLedgerView({ customerId, onBack }: Props) {
           <p className="p-md text-center text-muted">No transactions yet.</p>
         ) : (
           <ul className="flex-col gap-sm p-md w-full" role="list">
-            {transactions.map((t: any) => (
+            {[...transactions].reverse().map((t: any) => (
               <li key={t.id} className={`${styles.txnCard} ${t.approval === 'PENDING' ? styles.pendingCard : ''}`}>
                 <div className="flex-row justify-between">
                   <strong>{t.description}</strong>
@@ -104,7 +104,7 @@ export function ActiveLedgerView({ customerId, onBack }: Props) {
                   </span>
                 </div>
                 <div className="flex-row justify-between mt-md text-xs text-muted">
-                  <span>{new Date(t.date).toLocaleDateString()}</span>
+                  <span>{new Date(t.date).toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                   <span>{t.approval} • {t.settlement}</span>
                 </div>
               </li>

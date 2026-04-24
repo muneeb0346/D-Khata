@@ -253,7 +253,7 @@ export async function processPayment(customerId: string, amount: number) {
       .values({
         id: paymentTxnId,
         customerId,
-        description: `Payment received: Rs. ${amount}`,
+        description: 'Payment received',
         originalAmount: amount,
         remainingBalance: 0,
         type: 'PAYMENT',
