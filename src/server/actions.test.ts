@@ -289,17 +289,40 @@ describe('Server Actions', () => {
     });
 
     it('verifies a transaction and unlocks ledger', async () => {
-      mocks.queryMock.customers.findFirst.mockResolvedValueOnce({ id: 'c1', totalBalance: 0 });
-      mocks.queryMock.transactions.findFirst.mockResolvedValueOnce({ id: 't1', approval: 'PENDING' });
+      mocks.queryMock.customers.findFirst.mockResolvedValueOnce({ id: 'c1', totalBalance: 100 });
+      mocks.queryMock.transactions.findFirst.mockResolvedValueOnce({ id: 't1', approval: 'PENDING', originalAmount: 100, remainingBalance: 100 });
+      mocks.orderByMock.mockResolvedValueOnce([]);
 
-      const updatedTxn = { id: 't1', approval: 'VERIFIED' };
+      const updatedTxn = { id: 't1', approval: 'VERIFIED', settlement: 'UNPAID', remainingBalance: 100 };
       mocks.returningMock.mockResolvedValueOnce([updatedTxn]);
 
       const result = await resolveTransaction('c1', 't1', 'VERIFIED');
 
       expect(result).toEqual(updatedTxn);
       expect(mocks.txMock.update).toHaveBeenCalled();
-      expect(mocks.setMock).toHaveBeenCalledWith({ approval: 'VERIFIED' });
+      expect(mocks.setMock).toHaveBeenCalledWith({ approval: 'VERIFIED', settlement: 'UNPAID', remainingBalance: 100 });
+    });
+
+    it('reconciles pending partial to settled when prior payments already covered it', async () => {
+      mocks.queryMock.customers.findFirst.mockResolvedValueOnce({ id: 'c1', totalBalance: 20074 });
+      mocks.queryMock.transactions.findFirst.mockResolvedValueOnce({
+        id: 't1',
+        approval: 'PENDING',
+        originalAmount: 2636,
+        remainingBalance: 136,
+      });
+      mocks.orderByMock.mockResolvedValueOnce([
+        { id: 'v1', remainingBalance: 20000 },
+        { id: 'v2', remainingBalance: 74 },
+      ]);
+
+      const updatedTxn = { id: 't1', approval: 'VERIFIED', settlement: 'SETTLED', remainingBalance: 0 };
+      mocks.returningMock.mockResolvedValueOnce([updatedTxn]);
+
+      const result = await resolveTransaction('c1', 't1', 'VERIFIED');
+
+      expect(result).toEqual(updatedTxn);
+      expect(mocks.setMock).toHaveBeenCalledWith({ approval: 'VERIFIED', settlement: 'SETTLED', remainingBalance: 0 });
     });
 
     it('disputes a transaction, sets it to SETTLED and remainingBalance to 0, subtracts from totalBalance', async () => {

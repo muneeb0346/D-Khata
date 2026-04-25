@@ -36,11 +36,11 @@ export async function updateCustomer(customerId: string, customerData: {
 
   const existingCustomerByCnic = customerData.cnic
     ? await db.query.customers.findFirst({
-        where: and(
-          eq(customers.cnic, customerData.cnic),
-          ne(customers.id, customerId)
-        ),
-      })
+      where: and(
+        eq(customers.cnic, customerData.cnic),
+        ne(customers.id, customerId)
+      ),
+    })
     : null;
 
   const existingCustomer = existingCustomerByPhone ?? existingCustomerByCnic;
@@ -86,8 +86,8 @@ export async function createCustomer(customerData: {
 
   const existingCustomerByCnic = customerData.cnic
     ? await db.query.customers.findFirst({
-        where: eq(customers.cnic, customerData.cnic),
-      })
+      where: eq(customers.cnic, customerData.cnic),
+    })
     : null;
 
   const existingCustomer = existingCustomerByPhone ?? existingCustomerByCnic;
@@ -231,9 +231,35 @@ export async function resolveTransaction(
     }
 
     if (resolution === 'VERIFIED') {
+      const verifiedOpenTxns = await tx
+        .select()
+        .from(transactions)
+        .where(
+          and(
+            eq(transactions.customerId, customerId),
+            eq(transactions.approval, 'VERIFIED'),
+            eq(transactions.type, 'CREDIT')
+          )
+        )
+        .orderBy(asc(transactions.date)) ?? [];
+
+      const verifiedOpenBalance = verifiedOpenTxns
+        .filter((t) => t.remainingBalance > 0)
+        .reduce((sum, t) => sum + t.remainingBalance, 0);
+
+      const normalizedRemaining = Math.max(0, (customer.totalBalance ?? 0) - verifiedOpenBalance);
+      const nextRemaining = Math.min(txn.remainingBalance, normalizedRemaining);
+      const nextSettlement = nextRemaining === 0
+        ? 'SETTLED'
+        : (nextRemaining < txn.originalAmount ? 'PARTIAL' : 'UNPAID');
+
       const [updatedTxn] = await tx
         .update(transactions)
-        .set({ approval: 'VERIFIED' })
+        .set({
+          approval: 'VERIFIED',
+          remainingBalance: nextRemaining,
+          settlement: nextSettlement,
+        })
         .where(eq(transactions.id, transactionId))
         .returning();
 
