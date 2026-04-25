@@ -54,15 +54,15 @@ export default function PublicKhata() {
 
   return (
     <main className="layout-container flex-col" aria-live="polite">
-      <header className="layout-header p-md" role="banner">
-        <h1 className="m-0">{customer.name}&apos;s Ledger</h1>
+      <header className={styles.header} role="banner">
+        <h1 className={styles.name}>{customer.name}&apos;s Ledger</h1>
       </header>
 
-      <section className={styles.content} aria-label="Ledger overview">
+      <section className="txns-container p-md" aria-label="Ledger overview">
         <div className={styles.balanceHeader}>
           <span className="text-muted">Current Balance</span>
-          <h2 className={`${styles.balance} ${customer.totalBalance < 0 ? styles.advance : styles.debt}`}>
-            Rs. {Math.abs(customer.totalBalance)}
+          <h2 className={`${styles.balanceAmount} ${customer.totalBalance < 0 ? 'text-advance' : 'text-debt'}`}>
+            Rs. {Math.abs(customer.totalBalance)} {customer.totalBalance < 0 ? '(Adv)' : '(Debt)'}
           </h2>
         </div>
 
@@ -72,7 +72,7 @@ export default function PublicKhata() {
         </section>
 
         <section aria-label="Transaction history">
-          <h3 className={`${styles.sectionTitle} pb-0`}>Transaction History</h3>
+          <h3 className="section-title pb-0">Transaction History</h3>
           <TransactionList transactions={transactions} />
         </section>
       </section>
@@ -84,7 +84,7 @@ export default function PublicKhata() {
             <p className={styles.bannerText}>
               The merchant added a new transaction:
               <strong> {pendingTransaction.description} </strong>
-              for Rs. {pendingTransaction.originalAmount}.
+              for <strong>Rs. {pendingTransaction.originalAmount}</strong>.
               Do you verify this?
             </p>
             <div className="flex-row gap-md mt-md">

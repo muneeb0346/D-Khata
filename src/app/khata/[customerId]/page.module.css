@@ -1,12 +1,24 @@
-.content {
-  flex: 1;
-  overflow-y: auto;
+.header {
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
   display: flex;
   flex-direction: column;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-md);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  border-bottom: var(--border-width-sm) solid rgba(0, 0, 0, 0.1);
+}
+
+.name {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  margin: 0;
 }
 
 .balanceHeader {
-  padding: var(--spacing-xl) var(--spacing-md) var(--spacing-md);
+  padding: var(--spacing-lg) var(--spacing-md) var(--spacing-md);
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -14,27 +26,10 @@
   gap: var(--spacing-xs);
 }
 
-.balance {
+.balanceAmount {
   font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
   margin: 0;
-}
-
-.debt {
-  color: var(--color-danger);
-}
-
-.advance {
-  color: var(--color-primary);
-}
-
-.sectionTitle {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-bold);
-  padding: var(--spacing-md);
-  padding-bottom: 0;
-  margin: 0;
-  color: var(--color-text-main);
 }
 
 .stickyBanner {

@@ -36,8 +36,8 @@
   --z-sticky: 20;
   --chart-height: 200px;
   --opacity-transparent: 0;
-  --opacity-low: 0.3;
-  --opacity-muted: 0.6;
+  --opacity-low: 0.5;
+  --opacity-muted: 0.8;
   --opacity-full: 1;
   --tap-target-min: 44px;
   --layout-max-width: 600px;
@@ -142,6 +142,7 @@ body {
 .layout-container {
   height: var(--layout-full-height);
   max-width: var(--layout-max-width);
+  width: 100%;
   margin: 0 auto;
   background: var(--color-bg);
   position: relative;
@@ -165,4 +166,115 @@ body {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border-width: 0;
+}
+
+/* --- Shared Global Components --- */
+
+.card-base {
+  width: 100%;
+  background: var(--color-surface);
+  border: var(--border-width-sm) solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.card-pending {
+  border: var(--border-width-md) solid var(--color-warning);
+}
+
+.text-debt {
+  color: var(--color-danger);
+}
+
+.text-advance {
+  color: var(--color-primary);
+}
+
+.text-muted {
+  color: var(--color-text-muted);
+}
+
+.text-xs {
+  font-size: var(--font-size-xs);
+}
+
+/* Transaction Status Modifiers */
+.status-settled {
+  opacity: var(--opacity-muted);
+  background: var(--color-bg);
+}
+
+.status-unpaid {
+  border-left: var(--border-width-md) solid var(--color-danger);
+}
+
+.badge-settled {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-semibold);
+  margin-top: var(--spacing-xs);
+}
+
+.badge-unpaid {
+  font-size: var(--font-size-xs);
+  color: var(--color-danger);
+  font-weight: var(--font-weight-bold);
+  margin-top: var(--spacing-xs);
+}
+
+/* Partial Payment Progress Bar */
+.partial-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-xs);
+}
+
+.partial-text {
+  font-size: var(--font-size-xs);
+  color: var(--color-warning);
+  font-weight: var(--font-weight-semibold);
+}
+
+.progress-bar {
+  width: 100%;
+  min-width: var(--tap-target-min);
+  height: var(--spacing-xs);
+  -webkit-appearance: none;
+  appearance: none;
+  border: none;
+  background-color: var(--color-border);
+  border-radius: var(--radius-full);
+}
+
+.progress-bar::-webkit-progress-bar {
+  background-color: var(--color-border);
+  border-radius: var(--radius-full);
+}
+
+.progress-bar::-webkit-progress-value {
+  background-color: var(--color-primary);
+  border-radius: var(--radius-full);
+}
+
+.progress-bar::-moz-progress-bar {
+  background-color: var(--color-primary);
+  border-radius: var(--radius-full);
+}
+
+/* Shared Layout Containers */
+.txns-container {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--color-bg);
+}
+
+.section-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--spacing-md);
+  margin-top: var(--spacing-xl);
+  color: var(--color-text-main);
 }

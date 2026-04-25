@@ -21,43 +21,49 @@ export function TransactionList({ transactions }: Props) {
   }
 
   return (
-    <ul className={styles.list} role="list">
-      {[...transactions].reverse().map(({ id, description, date, type, originalAmount, remainingBalance, settlement }) => {
+    <ul className="flex-col gap-sm w-full" role="list">
+      {[...transactions].reverse().map(({ id, description, date, type, originalAmount, remainingBalance, settlement, approval }) => {
         const isSettled = settlement === 'SETTLED';
         const isPartial = settlement === 'PARTIAL';
         const isUnpaid = settlement === 'UNPAID' && type === 'CREDIT';
 
         const cardClass = [
-          styles.card,
-          isSettled ? styles.settled : '',
-          isUnpaid ? styles.unpaid : '',
+          'card-base',
+          approval === 'PENDING' ? 'card-pending' : '',
+          isSettled ? 'status-settled' : '',
+          isUnpaid ? 'status-unpaid' : '',
         ].filter(Boolean).join(' ');
 
         return (
           <li key={id} className={cardClass} aria-label={`${description}, ${type === 'CREDIT' ? '+' : '-'}Rs. ${originalAmount}, ${settlement}`}>
-            <div className="flex-row justify-between items-center">
-              <div>
-                <div className={styles.desc}>{description}</div>
-                <time className={styles.date} dateTime={new Date(date).toISOString()}>
-                  {new Date(date).toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                </time>
-              </div>
-              <div className="flex-col items-end">
-                <div className={`${styles.amount} ${type === 'CREDIT' ? styles.debt : styles.advance}`}>
-                  {type === 'CREDIT' ? '+' : '-'}Rs. {originalAmount}
-                </div>
-                {isSettled && <span className={styles.settledBadge}>Settled</span>}
-                {isUnpaid && <span className={styles.unpaidBadge}>Unpaid</span>}
+            <div className="flex-row justify-between">
+              <strong>{description}</strong>
+              <span className={type === 'CREDIT' ? 'text-debt' : 'text-advance'}>
+                {type === 'CREDIT' ? '+' : '-'}Rs. {originalAmount}
+              </span>
+            </div>
+
+            <div className="flex-row justify-between mt-md text-xs text-muted">
+              <time dateTime={new Date(date).toISOString()}>
+                {new Date(date).toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+              </time>
+              <span>{approval} • {settlement}</span>
+            </div>
+
+            {(isSettled || isUnpaid || isPartial) && (
+              <div className="flex-col items-end mt-sm">
+                {isSettled && <span className="badge-settled">Fully Paid</span>}
+                {isUnpaid && <span className="badge-unpaid">Unpaid</span>}
                 {isPartial && (
-                  <div className={styles.partialContainer}>
-                    <span className={styles.partialText}>Rs. {remainingBalance} left</span>
-                    <div className={styles.progressTrack} role="progressbar" aria-valuenow={originalAmount - remainingBalance} aria-valuemin={0} aria-valuemax={originalAmount}>
-                      <div className={styles.progressFill} style={{ width: `${((originalAmount - remainingBalance) / originalAmount) * 100}%` }} />
-                    </div>
+                  <div className="partial-container">
+                    <label htmlFor={`progress-${id}`} className="partial-text">Rs. {remainingBalance} left</label>
+                    <progress id={`progress-${id}`} className="progress-bar" value={originalAmount - remainingBalance} max={originalAmount}>
+                      {((originalAmount - remainingBalance) / originalAmount) * 100}%
+                    </progress>
                   </div>
                 )}
               </div>
-            </div>
+            )}
           </li>
         );
       })}
