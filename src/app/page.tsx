@@ -11,13 +11,17 @@ export default function Dashboard() {
   const [view, setView] = useState<'list' | 'new' | 'ledger'>('list');
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [customers, setCustomers] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetchAllCustomers = async () => {
+    setIsLoading(true);
     try {
       const data = await getCustomers();
       setCustomers(data);
     } catch (e) {
       console.error(e);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -43,6 +47,7 @@ export default function Dashboard() {
           </header>
           <CustomerList
             customers={customers}
+            isLoading={isLoading}
             onSelectCustomer={handleSelectCustomer}
           />
           <footer className="sticky-bottom">

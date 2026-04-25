@@ -1,4 +1,4 @@
-import styles from './TransactionList.module.css';
+import { useMemo } from 'react';
 
 interface Transaction {
   id: string;
@@ -14,15 +14,18 @@ interface Transaction {
 interface Props {
   transactions: Transaction[];
 }
-
 export function TransactionList({ transactions }: Props) {
+  const reversedTransactions = useMemo(() => {
+    return transactions ? [...transactions].reverse() : [];
+  }, [transactions]);
+
   if (!transactions || transactions.length === 0) {
     return <p className="text-center text-muted p-md">No transactions yet.</p>;
   }
 
   return (
     <ul className="flex-col gap-sm w-full" role="list">
-      {[...transactions].reverse().map(({ id, description, date, type, originalAmount, remainingBalance, settlement, approval }) => {
+      {reversedTransactions.map(({ id, description, date, type, originalAmount, remainingBalance, settlement, approval }) => {
         const isSettled = settlement === 'SETTLED';
         const isPartial = settlement === 'PARTIAL';
         const isUnpaid = settlement === 'UNPAID' && type === 'CREDIT';

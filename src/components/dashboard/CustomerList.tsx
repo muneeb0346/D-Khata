@@ -1,12 +1,14 @@
 import React, { useState, useMemo } from 'react';
+import { Spinner } from '@/components/ui/Spinner';
 import styles from './CustomerList.module.css';
 
 interface CustomerListProps {
   customers: any[];
+  isLoading: boolean;
   onSelectCustomer: (id: string) => void;
 }
 
-export const CustomerList = React.memo(function CustomerList({ customers, onSelectCustomer }: CustomerListProps) {
+export const CustomerList = React.memo(function CustomerList({ customers, isLoading, onSelectCustomer }: CustomerListProps) {
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredCustomers = useMemo(() => {
@@ -38,7 +40,9 @@ export const CustomerList = React.memo(function CustomerList({ customers, onSele
         </search>
       )}
 
-      {filteredCustomers.length === 0 ? (
+      {isLoading ? (
+        <Spinner />
+      ) : filteredCustomers.length === 0 ? (
         <p className={styles.empty}>
           {customers.length === 0 ? "No customers yet. Add one to get started!" : "No customers match your search."}
         </p>
