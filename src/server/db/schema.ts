@@ -20,7 +20,7 @@ export const transactions = pgTable('transactions', {
     description: text('description').notNull(),
     originalAmount: integer('original_amount').notNull(),
     remainingBalance: integer('remaining_balance').notNull(),
-    type: text('type').notNull(), // 'CREDIT' | 'PAYMENT'
+    type: text('type').notNull(),
     approval: approvalEnum('approval').default('PENDING').notNull(),
     settlement: settlementEnum('settlement').default('UNPAID').notNull(),
 });

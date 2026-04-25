@@ -34,22 +34,27 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
 };
 
 export function BalanceGraph({ transactions, isDebt }: Props) {
-  // Ensure we have a strictly boolean debt status to avoid unexpected color defaults
   const chartColor = isDebt === true ? 'var(--color-danger)' : 'var(--color-primary)';
   const uniqueId = isDebt ? 'debt' : 'advance';
   const gradientId = `colorBalance-${uniqueId}`;
 
-  let balance = 0;
-  const data = transactions.map(t => {
+  const data = transactions.reduce<Array<{ date: string; balance: number }>>((points, t) => {
+    const previousBalance = points.length > 0 ? points[points.length - 1].balance : 0;
+    let nextBalance = previousBalance;
+
     if (t.approval === 'VERIFIED') {
-      if (t.type === 'CREDIT') balance += t.originalAmount;
-      if (t.type === 'PAYMENT') balance -= t.originalAmount;
+      if (t.type === 'CREDIT') nextBalance = previousBalance + t.originalAmount;
+      if (t.type === 'PAYMENT') nextBalance = previousBalance - t.originalAmount;
     }
-    return {
-      date: new Date(t.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
-      balance,
-    };
-  });
+
+    return [
+      ...points,
+      {
+        date: new Date(t.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+        balance: nextBalance,
+      },
+    ];
+  }, []);
 
   return (
     <figure className={styles.container} aria-label="Balance history over time">

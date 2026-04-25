@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { AddCreditForm } from '@/components/dashboard/AddCreditForm';
 import { ReceivePayForm } from '@/components/dashboard/ReceivePayForm';
@@ -20,23 +20,30 @@ export function ActiveLedgerView({ customerId, onBack }: Props) {
   const [loading, setLoading] = useState(true);
   const [activeForm, setActiveForm] = useState<'credit' | 'pay' | 'edit' | null>(null);
 
-  const fetchLedger = async () => {
-    setLoading(true);
+  const fetchLedger = useCallback(async ({ showLoading = true }: { showLoading?: boolean } = {}) => {
+    if (showLoading) {
+      setLoading(true);
+    }
+
     try {
       const data = await getLedger(customerId);
       setLedgerData(data);
-    } catch (e) {
-      alert("Failed to load ledger");
+    } catch {
+      alert('Failed to load ledger');
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchLedger();
   }, [customerId]);
 
-  const handleShare = () => {
+  useEffect(() => {
+    const timerId = window.setTimeout(() => {
+      void fetchLedger({ showLoading: false });
+    }, 0);
+
+    return () => window.clearTimeout(timerId);
+  }, [fetchLedger]);
+
+  const getWhatsAppShareUrl = () => {
     if (!ledgerData?.customer?.phone) return;
     const url = `${window.location.origin}/khata/${customerId}`;
     const text = encodeURIComponent(`Please verify your D-Khata ledger: ${url}`);
@@ -46,13 +53,34 @@ export function ActiveLedgerView({ customerId, onBack }: Props) {
       phone = '92' + phone.substring(1);
     }
 
-    window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
+    return `https://wa.me/${phone}?text=${text}`;
+  };
+
+  const openShareInTemporaryTab = () => {
+    const shareUrl = getWhatsAppShareUrl();
+    if (!shareUrl) return;
+
+    const shareTab = window.open(shareUrl, '_blank');
+    if (!shareTab) return;
+
+    window.setTimeout(() => {
+      try {
+        shareTab.close();
+      } catch {
+        // Ignore close failures; some browsers restrict closing after navigation.
+      }
+    }, 3000);
+  };
+
+  const handleShare = () => {
+    openShareInTemporaryTab();
   };
 
   const handleCreditSubmit = async (data: { amount: number; description: string }) => {
     try {
       await addPendingCredit(customerId, data);
       setActiveForm(null);
+      openShareInTemporaryTab();
       fetchLedger();
     } catch (e) {
       alert(e instanceof Error ? e.message : "Failed to add credit");
@@ -147,7 +175,8 @@ export function ActiveLedgerView({ customerId, onBack }: Props) {
         <Button
           variant="primary"
           onClick={() => setActiveForm('pay')}
-          aria-label="Record a payment received from customer"
+          disabled={isLocked}
+          aria-label={isLocked ? 'Cannot receive payment while account is locked' : 'Record a payment received from customer'}
         >
           Receive Pay
         </Button>
