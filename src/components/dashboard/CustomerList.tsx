@@ -12,6 +12,23 @@ interface CustomerListProps {
 export const CustomerList = React.memo(function CustomerList({ customers, isLoading, onSelectCustomer }: CustomerListProps) {
   const [searchTerm, setSearchTerm] = useState('');
 
+  const totals = useMemo(() => {
+    return customers.reduce(
+      (acc, customer) => {
+        const balance = customer.totalBalance ?? 0;
+
+        if (balance > 0) {
+          acc.debt += balance;
+        } else if (balance < 0) {
+          acc.advance += Math.abs(balance);
+        }
+
+        return acc;
+      },
+      { debt: 0, advance: 0 }
+    );
+  }, [customers]);
+
   const filteredCustomers = useMemo(() => {
     if (!searchTerm.trim()) return customers;
     const lower = searchTerm.toLowerCase();
@@ -25,6 +42,17 @@ export const CustomerList = React.memo(function CustomerList({ customers, isLoad
   return (
     <section className={styles.listContainer} aria-label="Customer list" aria-live="polite">
       <h2 className={styles.title}>Your Customers</h2>
+
+      <section className={styles.summary} aria-label="Customer balance summary">
+        <div className={`${styles.summaryCard} ${styles.debtCard}`}>
+          <span className={styles.summaryLabel}>Total Debt</span>
+          <strong className={`${styles.summaryValue} ${styles.debt}`}>Rs. {totals.debt}</strong>
+        </div>
+        <div className={`${styles.summaryCard} ${styles.advanceCard}`}>
+          <span className={styles.summaryLabel}>Total Advance</span>
+          <strong className={`${styles.summaryValue} ${styles.advance}`}>Rs. {totals.advance}</strong>
+        </div>
+      </section>
 
       {customers.length > 0 && (
         <search>

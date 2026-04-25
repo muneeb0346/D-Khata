@@ -30,11 +30,11 @@ export function TransactionList({ transactions }: Props) {
         ].filter(Boolean).join(' ');
 
         return (
-          <li key={id} className={cardClass} aria-label={`${description}, ${type === 'CREDIT' ? '+' : '-'}Rs. ${originalAmount}, ${settlement}`}>
+          <li key={id} className={cardClass} aria-label={`${description}, ${type === 'CREDIT' ? '+' : '-'} Rs. ${originalAmount}, ${settlement}`}>
             <div className="flex-row justify-between">
               <strong>{description}</strong>
               <span className={type === 'CREDIT' ? 'text-debt' : 'text-advance'}>
-                {type === 'CREDIT' ? '+' : '-'}Rs. {originalAmount}
+                {type === 'CREDIT' ? '+' : '-'} Rs. {originalAmount}
               </span>
             </div>
 
