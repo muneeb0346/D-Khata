@@ -95,8 +95,8 @@ export function ActiveLedgerView({ customerId, onBack }: Props) {
         </div>
         <div className="flex-col">
           <h2 className={styles.name}>{customer.name}</h2>
-          <span className={`${styles.balance} ${(customer.totalBalance ?? 0) < 0 ? 'text-advance' : 'text-debt'}`}>
-            Balance: Rs. {Math.abs(customer.totalBalance ?? 0)} {(customer.totalBalance ?? 0) < 0 ? '(Adv)' : '(Debt)'}
+          <span className={`${styles.balance} ${Number(customer.totalBalance ?? 0) < 0 ? 'text-advance' : (Number(customer.totalBalance ?? 0) > 0 ? 'text-debt' : '')}`}>
+            Balance: Rs. {Math.abs(Number(customer.totalBalance ?? 0))} {Number(customer.totalBalance ?? 0) < 0 ? '(Adv)' : (Number(customer.totalBalance ?? 0) > 0 ? '(Debt)' : '')}
           </span>
         </div>
       </header>
@@ -111,7 +111,7 @@ export function ActiveLedgerView({ customerId, onBack }: Props) {
         <div className="p-md pb-0">
           <section aria-label="Balance history chart">
             <h3 className="sr-only">Balance History</h3>
-            <BalanceGraph transactions={transactions} />
+            <BalanceGraph transactions={transactions} isDebt={Number(customer.totalBalance ?? 0) > 0} />
           </section>
 
           <h3 className="sr-only">Transaction List</h3>

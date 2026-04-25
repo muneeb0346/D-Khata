@@ -62,14 +62,14 @@ export default function PublicKhata() {
       <section className="txns-container p-md" aria-label="Ledger overview">
         <div className={styles.balanceHeader}>
           <span className="text-muted">Current Balance</span>
-          <h2 className={`${styles.balanceAmount} ${(customer.totalBalance ?? 0) < 0 ? 'text-advance' : 'text-debt'}`}>
-            Rs. {Math.abs(customer.totalBalance ?? 0)} {(customer.totalBalance ?? 0) < 0 ? '(Adv)' : '(Debt)'}
+          <h2 className={`${styles.balanceAmount} ${Number(customer.totalBalance ?? 0) < 0 ? 'text-advance' : (Number(customer.totalBalance ?? 0) > 0 ? 'text-debt' : '')}`}>
+            Rs. {Math.abs(Number(customer.totalBalance ?? 0))} {Number(customer.totalBalance ?? 0) < 0 ? '(Adv)' : (Number(customer.totalBalance ?? 0) > 0 ? '(Debt)' : '')}
           </h2>
         </div>
 
         <section aria-label="Balance history chart">
           <h3 className="sr-only">Balance History</h3>
-          <BalanceGraph transactions={transactions} />
+          <BalanceGraph transactions={transactions} isDebt={Number(customer.totalBalance ?? 0) > 0} />
         </section>
 
         <section aria-label="Transaction history">

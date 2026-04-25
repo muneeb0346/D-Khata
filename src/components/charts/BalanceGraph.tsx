@@ -7,6 +7,7 @@ import { Transaction } from '@/types';
 
 interface Props {
   transactions: Transaction[];
+  isDebt: boolean;
 }
 
 const CHART_MARGIN = { top: 10, right: 0, left: 0, bottom: 0 };
@@ -32,7 +33,12 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   return null;
 };
 
-export function BalanceGraph({ transactions }: Props) {
+export function BalanceGraph({ transactions, isDebt }: Props) {
+  // Ensure we have a strictly boolean debt status to avoid unexpected color defaults
+  const chartColor = isDebt === true ? 'var(--color-danger)' : 'var(--color-primary)';
+  const uniqueId = isDebt ? 'debt' : 'advance';
+  const gradientId = `colorBalance-${uniqueId}`;
+
   let balance = 0;
   const data = transactions.map(t => {
     if (t.approval === 'VERIFIED') {
@@ -50,15 +56,15 @@ export function BalanceGraph({ transactions }: Props) {
       <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
         <AreaChart data={data} margin={CHART_MARGIN}>
           <defs>
-            <linearGradient id="colorBalance" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="var(--color-primary)" stopOpacity="var(--opacity-low)" />
-              <stop offset="95%" stopColor="var(--color-primary)" stopOpacity="var(--opacity-transparent)" />
+            <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor={chartColor} stopOpacity="var(--opacity-low)" />
+              <stop offset="95%" stopColor={chartColor} stopOpacity="var(--opacity-transparent)" />
             </linearGradient>
           </defs>
           <XAxis dataKey="date" fontSize="var(--font-size-xs)" tickLine={false} axisLine={false} minTickGap={CHART_TICK_GAP} />
           <YAxis fontSize="var(--font-size-xs)" tickLine={false} axisLine={false} width={CHART_Y_AXIS_WIDTH} />
           <Tooltip content={<CustomTooltip />} />
-          <Area type="monotone" dataKey="balance" stroke="var(--color-primary)" fillOpacity="var(--opacity-full)" fill="url(#colorBalance)" />
+          <Area type="monotone" dataKey="balance" stroke={chartColor} fillOpacity="var(--opacity-full)" fill={`url(#${gradientId})`} />
         </AreaChart>
       </ResponsiveContainer>
     </figure>
