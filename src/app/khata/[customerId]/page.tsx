@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { getLedger, resolveTransaction } from '@/server/actions';
 import { BalanceGraph } from '@/components/charts/BalanceGraph';
 import { TransactionList } from '@/components/khata/TransactionList';
 import { Button } from '@/components/ui/Button';
+import { Spinner } from '@/components/ui/Spinner';
 import styles from './page.module.css';
 import { useParams } from 'next/navigation';
 
@@ -41,7 +42,13 @@ export default function PublicKhata() {
     }
   };
 
-  if (loading || !ledgerData) return <main className="p-md text-center" aria-busy="true">Loading...</main>;
+  if (loading || !ledgerData) {
+    return (
+      <main className="layout-container flex-col">
+        <Spinner />
+      </main>
+    );
+  }
 
   const { customer, transactions, pendingTransaction } = ledgerData;
 

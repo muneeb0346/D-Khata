@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { AddCreditForm } from '@/components/dashboard/AddCreditForm';
 import { ReceivePayForm } from '@/components/dashboard/ReceivePayForm';
+import { Spinner } from '@/components/ui/Spinner';
 import styles from './ActiveLedgerView.module.css';
 import { getLedger, addPendingCredit, processPayment } from '@/server/actions';
 
@@ -63,7 +64,7 @@ export function ActiveLedgerView({ customerId, onBack }: Props) {
     alert('Customer information copied to clipboard for filing a case.');
   };
 
-  if (loading || !ledgerData) return <div className="p-md" aria-busy="true">Loading...</div>;
+  if (loading || !ledgerData) return <Spinner />;
 
   const { customer, transactions, pendingTransaction } = ledgerData;
   const isLocked = !!pendingTransaction;

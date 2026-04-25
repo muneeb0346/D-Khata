@@ -42,6 +42,10 @@
   --tap-target-min: 44px;
   --layout-max-width: 600px;
   --layout-full-height: 100vh;
+  --spinner-size: 40px;
+  --spinner-thickness: 4px;
+  --spinner-speed: 0.8s;
+  --container-min-height: 200px;
 }
 
 body {
