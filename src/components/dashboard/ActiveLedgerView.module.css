@@ -27,3 +27,7 @@
   font-weight: var(--font-weight-semibold);
   font-size: var(--font-size-sm);
 }
+
+.editBtn {
+  width: auto;
+}

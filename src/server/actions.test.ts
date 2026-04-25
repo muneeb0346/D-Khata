@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import {
   createCustomer,
   getLedger,
@@ -19,7 +19,7 @@ vi.mock('@/server/db', () => {
   const whereMock = vi.fn().mockImplementation(() => {
     return {
       returning: returningMock,
-      then: function (resolve: any) { resolve([]); }
+      then: function (resolve: (val: unknown[]) => void) { resolve([]); }
     };
   });
 
@@ -73,8 +73,32 @@ vi.mock('@/server/db', () => {
   };
 });
 
+interface QueryMocks {
+  customers: { findFirst: Mock };
+  transactions: { findFirst: Mock };
+}
+
+interface TxMocks {
+  query: QueryMocks;
+  insert: Mock;
+  update: Mock;
+  select: Mock;
+}
+
+interface DBMocks {
+  queryMock: QueryMocks;
+  returningMock: Mock;
+  whereMock: Mock;
+  setMock: Mock;
+  valuesMock: Mock;
+  orderByMock: Mock;
+  whereSelectMock: Mock;
+  fromMock: Mock;
+  txMock: TxMocks;
+}
+
 describe('Server Actions', () => {
-  const mocks = (db as any)._mocks;
+  const mocks = (db as unknown as { _mocks: DBMocks })._mocks;
 
   beforeEach(() => {
     vi.clearAllMocks();

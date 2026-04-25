@@ -8,12 +8,13 @@ import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import styles from './page.module.css';
 import { useParams } from 'next/navigation';
+import { LedgerData } from '@/types';
 
 export default function PublicKhata() {
   const params = useParams();
   const customerId = params.customerId as string;
 
-  const [ledgerData, setLedgerData] = useState<any>(null);
+  const [ledgerData, setLedgerData] = useState<LedgerData | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchLedger = async () => {
@@ -37,8 +38,8 @@ export default function PublicKhata() {
     try {
       await resolveTransaction(customerId, ledgerData.pendingTransaction.id, resolution);
       fetchLedger();
-    } catch (e: any) {
-      alert(e.message);
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Failed to resolve transaction");
     }
   };
 
@@ -61,8 +62,8 @@ export default function PublicKhata() {
       <section className="txns-container p-md" aria-label="Ledger overview">
         <div className={styles.balanceHeader}>
           <span className="text-muted">Current Balance</span>
-          <h2 className={`${styles.balanceAmount} ${customer.totalBalance < 0 ? 'text-advance' : 'text-debt'}`}>
-            Rs. {Math.abs(customer.totalBalance)} {customer.totalBalance < 0 ? '(Adv)' : '(Debt)'}
+          <h2 className={`${styles.balanceAmount} ${(customer.totalBalance ?? 0) < 0 ? 'text-advance' : 'text-debt'}`}>
+            Rs. {Math.abs(customer.totalBalance ?? 0)} {(customer.totalBalance ?? 0) < 0 ? '(Adv)' : '(Debt)'}
           </h2>
         </div>
 

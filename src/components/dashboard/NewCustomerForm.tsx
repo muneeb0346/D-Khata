@@ -1,55 +1,24 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import styles from './NewCustomerForm.module.css';
-import { createCustomer } from '@/server/actions';
+import { createCustomer, updateCustomer } from '@/server/actions';
+import { sanitizeName, sanitizePhone, formatCnic, PHONE_LENGTH, CNIC_MAX_LENGTH } from '@/utils/formatters';
+import { Customer } from '@/types';
 
 interface Props {
+  initialData?: Customer;
   onCancel: () => void;
   onSuccess: () => void;
 }
 
-const PHONE_LENGTH = 11;
-const CNIC_DIGIT_COUNT = 13;
-const CNIC_DASH_POSITIONS = [5, 12];
-const CNIC_MAX_LENGTH = 15;
-
-function sanitizeName(raw: string): string {
-  return raw.replace(/[^a-zA-Z\s.'-]/g, '');
-}
-
-const PHONE_PREFIX = '03';
-const PHONE_REMAINING = PHONE_LENGTH - PHONE_PREFIX.length;
-
-function sanitizePhone(raw: string): string {
-  const digits = raw.replace(/\D/g, '');
-  if (digits.length === 0) return '';
-  if (digits.startsWith(PHONE_PREFIX)) {
-    return digits.slice(0, PHONE_LENGTH);
-  }
-  if (digits.startsWith('0')) {
-    return PHONE_PREFIX + digits.slice(1, PHONE_REMAINING + 1);
-  }
-  return PHONE_PREFIX + digits.slice(0, PHONE_REMAINING);
-}
-
-function formatCnic(raw: string): string {
-  const digits = raw.replace(/\D/g, '').slice(0, CNIC_DIGIT_COUNT);
-  let formatted = '';
-  for (let i = 0; i < digits.length; i++) {
-    if (CNIC_DASH_POSITIONS.includes(i)) {
-      formatted += '-';
-    }
-    formatted += digits[i];
-  }
-  return formatted;
-}
-
-export function NewCustomerForm({ onCancel, onSuccess }: Props) {
+export function CustomerForm({ initialData, onCancel, onSuccess }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [cnic, setCnic] = useState('');
+  const [name, setName] = useState(initialData?.name || '');
+  const [phone, setPhone] = useState(initialData?.phone || '');
+  const [cnic, setCnic] = useState(initialData?.cnic || '');
+
+  const isEdit = !!initialData;
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -59,24 +28,33 @@ export function NewCustomerForm({ onCancel, onSuccess }: Props) {
 
     setLoading(true);
     try {
-      await createCustomer({
-        name: name.trim(),
-        phone,
-        address: address || undefined,
-        cnic: cnic || undefined,
-      });
-      onSuccess();
-    } catch (err: any) {
-      setError(err.message || 'Failed to create customer.');
+      if (isEdit) {
+        await updateCustomer(initialData.id, {
+          name: name.trim(),
+          phone,
+          address: address || undefined,
+          cnic: cnic || undefined,
+        });
+      } else {
+        await createCustomer({
+          name: name.trim(),
+          phone,
+          address: address || undefined,
+          cnic: cnic || undefined,
+        });
+      }
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : `Failed to ${isEdit ? 'update' : 'create'} customer.`;
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className={styles.overlay} onClick={onCancel} role="dialog" aria-modal="true" aria-label="New customer form">
+    <div className={styles.overlay} onClick={onCancel} role="dialog" aria-modal="true" aria-label={`${isEdit ? 'Edit' : 'New'} customer form`}>
       <section className={styles.sheet} onClick={(e) => e.stopPropagation()}>
-        <h2 className={styles.title}>New Customer</h2>
+        <h2 className={styles.title}>{isEdit ? 'Edit Customer' : 'New Customer'}</h2>
 
         {error && <div className={styles.errorBanner} role="alert" aria-live="assertive">{error}</div>}
 
@@ -111,7 +89,7 @@ export function NewCustomerForm({ onCancel, onSuccess }: Props) {
           </div>
           <div className="flex-col gap-sm">
             <label htmlFor="field-address" className={styles.label}>Address (Optional)</label>
-            <input id="field-address" name="address" className={styles.input} placeholder="House 1, Street 2" autoComplete="street-address" />
+            <input id="field-address" name="address" className={styles.input} placeholder="House 1, Street 2" autoComplete="street-address" defaultValue={initialData?.address || ''} />
           </div>
           <div className="flex-col gap-sm">
             <label htmlFor="field-cnic" className={styles.label}>CNIC (Optional)</label>
@@ -130,7 +108,7 @@ export function NewCustomerForm({ onCancel, onSuccess }: Props) {
 
         <div className="flex-row gap-md">
           <Button type="button" variant="secondary" onClick={onCancel}>Cancel</Button>
-          <Button type="submit" form="new-customer-form" disabled={loading} aria-busy={loading}>{loading ? 'Adding...' : 'Add Customer'}</Button>
+          <Button type="submit" form="new-customer-form" disabled={loading} aria-busy={loading}>{loading ? 'Saving...' : (isEdit ? 'Save Changes' : 'Add Customer')}</Button>
         </div>
       </section>
     </div>

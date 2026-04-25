@@ -1,15 +1,5 @@
 import { useMemo } from 'react';
-
-interface Transaction {
-  id: string;
-  description: string;
-  date: string;
-  type: 'CREDIT' | 'PAYMENT';
-  originalAmount: number;
-  remainingBalance: number;
-  settlement: 'UNPAID' | 'PARTIAL' | 'SETTLED' | 'ADVANCE';
-  approval: 'PENDING' | 'VERIFIED' | 'DISPUTED';
-}
+import { Transaction } from '@/types';
 
 interface Props {
   transactions: Transaction[];

@@ -3,9 +3,10 @@
 import React from 'react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import styles from './BalanceGraph.module.css';
+import { Transaction } from '@/types';
 
 interface Props {
-  transactions: any[];
+  transactions: Transaction[];
 }
 
 const CHART_MARGIN = { top: 10, right: 0, left: 0, bottom: 0 };
@@ -13,7 +14,13 @@ const CHART_TICK_GAP = 20;
 const CHART_Y_AXIS_WIDTH = 40;
 const CHART_HEIGHT = 200;
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: Array<{ value: number }>;
+  label?: string;
+}
+
+const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
     return (
       <div className={styles.tooltip} role="tooltip">

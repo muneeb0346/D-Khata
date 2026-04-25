@@ -1,9 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { Spinner } from '@/components/ui/Spinner';
 import styles from './CustomerList.module.css';
+import { Customer } from '@/types';
 
 interface CustomerListProps {
-  customers: any[];
+  customers: Customer[];
   isLoading: boolean;
   onSelectCustomer: (id: string) => void;
 }
@@ -56,15 +57,15 @@ export const CustomerList = React.memo(function CustomerList({ customers, isLoad
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSelectCustomer(c.id); }}
               role="button"
               tabIndex={0}
-              aria-label={`View ledger for ${c.name}, balance Rs. ${Math.abs(c.totalBalance)}`}
+              aria-label={`View ledger for ${c.name}, balance Rs. ${Math.abs(c.totalBalance ?? 0)}`}
             >
               <div className="flex-col">
                 <span className={styles.name}>{c.name}</span>
                 <span className={styles.phone}>{c.phone}</span>
               </div>
-              <span className={`${styles.balance} ${c.totalBalance < 0 ? styles.advance : (c.totalBalance > 0 ? styles.debt : '')}`}>
-                Rs. {Math.abs(c.totalBalance)}
-                {c.totalBalance < 0 ? ' (Adv)' : ''}
+              <span className={`${styles.balance} ${(c.totalBalance ?? 0) < 0 ? styles.advance : ((c.totalBalance ?? 0) > 0 ? styles.debt : '')}`}>
+                Rs. {Math.abs(c.totalBalance ?? 0)}
+                {(c.totalBalance ?? 0) < 0 ? ' (Adv)' : ''}
               </span>
             </li>
           ))}

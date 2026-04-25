@@ -2,7 +2,63 @@
 
 import { db } from '@/server/db';
 import { customers, transactions } from '@/server/db/schema';
-import { eq, and, asc, or } from 'drizzle-orm';
+import { eq, and, asc, or, ne } from 'drizzle-orm';
+
+export async function updateCustomer(customerId: string, customerData: {
+  name: string;
+  phone: string;
+  address?: string;
+  cnic?: string;
+}) {
+  if (!customerData.name || /\d/.test(customerData.name)) {
+    throw new Error('Name is required.');
+  }
+
+  if (!/^03\d{9}$/.test(customerData.phone)) {
+    throw new Error('Phone must be 11 digits.');
+  }
+
+  if (customerData.cnic && !/^\d{5}-\d{7}-\d{1}$/.test(customerData.cnic)) {
+    throw new Error('CNIC must follow the format xxxxx-xxxxxxx-x.');
+  }
+
+  const conditions = [
+    and(
+      eq(customers.phone, customerData.phone),
+      ne(customers.id, customerId)
+    )
+  ];
+
+  if (customerData.cnic) {
+    conditions.push(
+      and(
+        eq(customers.cnic, customerData.cnic),
+        ne(customers.id, customerId)
+      )
+    );
+  }
+
+  const existingCustomer = await db.query.customers.findFirst({
+    where: or(...conditions),
+  });
+
+  if (existingCustomer) {
+    throw new Error('Another customer with this phone number or CNIC already exists.');
+  }
+
+  const [updatedCustomer] = await db
+    .update(customers)
+    .set({
+      name: customerData.name,
+      phone: customerData.phone,
+      address: customerData.address ?? null,
+      cnic: customerData.cnic ?? null,
+    })
+    .where(eq(customers.id, customerId))
+    .returning();
+
+  return updatedCustomer;
+}
 
 export async function createCustomer(customerData: {
   name: string;
@@ -277,6 +333,7 @@ export async function processPayment(customerId: string, amount: number) {
     };
   });
 }
+
 export async function getCustomers() {
   return await db.query.customers.findMany();
 }

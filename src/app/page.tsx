@@ -2,15 +2,16 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { CustomerList } from '@/components/dashboard/CustomerList';
-import { NewCustomerForm } from '@/components/dashboard/NewCustomerForm';
+import { CustomerForm } from '@/components/dashboard/NewCustomerForm';
 import { ActiveLedgerView } from '@/components/dashboard/ActiveLedgerView';
 import { Button } from '@/components/ui/Button';
 import { getCustomers } from '@/server/actions';
+import { Customer } from '@/types';
 
 export default function Dashboard() {
   const [view, setView] = useState<'list' | 'new' | 'ledger'>('list');
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
-  const [customers, setCustomers] = useState<any[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchAllCustomers = async () => {
@@ -57,7 +58,7 @@ export default function Dashboard() {
       )}
 
       {view === 'new' && (
-        <NewCustomerForm
+        <CustomerForm
           onCancel={() => setView('list')}
           onSuccess={() => setView('list')}
         />

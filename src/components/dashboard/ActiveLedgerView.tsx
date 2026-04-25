@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { AddCreditForm } from '@/components/dashboard/AddCreditForm';
 import { ReceivePayForm } from '@/components/dashboard/ReceivePayForm';
+import { CustomerForm } from '@/components/dashboard/NewCustomerForm';
 import { Spinner } from '@/components/ui/Spinner';
 import styles from './ActiveLedgerView.module.css';
 import { getLedger, addPendingCredit, processPayment } from '@/server/actions';
 import { TransactionList } from '@/components/khata/TransactionList';
 import { BalanceGraph } from '@/components/charts/BalanceGraph';
+import { LedgerData } from '@/types';
 
 interface Props {
   customerId: string;
@@ -14,9 +16,9 @@ interface Props {
 }
 
 export function ActiveLedgerView({ customerId, onBack }: Props) {
-  const [ledgerData, setLedgerData] = useState<any>(null);
+  const [ledgerData, setLedgerData] = useState<LedgerData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeForm, setActiveForm] = useState<'credit' | 'pay' | null>(null);
+  const [activeForm, setActiveForm] = useState<'credit' | 'pay' | 'edit' | null>(null);
 
   const fetchLedger = async () => {
     setLoading(true);
@@ -52,8 +54,8 @@ export function ActiveLedgerView({ customerId, onBack }: Props) {
       await addPendingCredit(customerId, data);
       setActiveForm(null);
       fetchLedger();
-    } catch (e: any) {
-      alert(e.message);
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Failed to add credit");
     }
   };
 
@@ -62,13 +64,14 @@ export function ActiveLedgerView({ customerId, onBack }: Props) {
       await processPayment(customerId, amount);
       setActiveForm(null);
       fetchLedger();
-    } catch (e: any) {
-      alert(e.message);
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Failed to process payment");
     }
   };
 
   const handleFileCase = () => {
-    const caseInfo = `CUSTOMER CASE INFORMATION\n-------------------------\nName: ${ledgerData?.customer?.name}\nPhone: ${ledgerData?.customer?.phone}\nCNIC: ${ledgerData?.customer?.cnic || 'Not Provided'}\nAddress: ${ledgerData?.customer?.address || 'Not Provided'}\n\nTotal Balance: Rs. ${Math.abs(ledgerData?.customer?.totalBalance)} ${ledgerData?.customer?.totalBalance < 0 ? '(Advance)' : '(Debt)'}\n\nPlease proceed with necessary actions.`;
+    const balance = ledgerData?.customer?.totalBalance ?? 0;
+    const caseInfo = `CUSTOMER CASE INFORMATION\n-------------------------\nName: ${ledgerData?.customer?.name}\nPhone: ${ledgerData?.customer?.phone}\nCNIC: ${ledgerData?.customer?.cnic || 'Not Provided'}\nAddress: ${ledgerData?.customer?.address || 'Not Provided'}\n\nTotal Balance: Rs. ${Math.abs(balance)} ${balance < 0 ? '(Advance)' : '(Debt)'}\n\nPlease proceed with necessary actions.`;
     navigator.clipboard.writeText(caseInfo);
     alert('Customer information copied to clipboard for filing a case.');
   };
@@ -92,8 +95,8 @@ export function ActiveLedgerView({ customerId, onBack }: Props) {
         </div>
         <div className="flex-col">
           <h2 className={styles.name}>{customer.name}</h2>
-          <span className={`${styles.balance} ${customer.totalBalance < 0 ? 'text-advance' : 'text-debt'}`}>
-            Balance: Rs. {Math.abs(customer.totalBalance)} {customer.totalBalance < 0 ? '(Adv)' : '(Debt)'}
+          <span className={`${styles.balance} ${(customer.totalBalance ?? 0) < 0 ? 'text-advance' : 'text-debt'}`}>
+            Balance: Rs. {Math.abs(customer.totalBalance ?? 0)} {(customer.totalBalance ?? 0) < 0 ? '(Adv)' : '(Debt)'}
           </span>
         </div>
       </header>
@@ -116,7 +119,10 @@ export function ActiveLedgerView({ customerId, onBack }: Props) {
         </div>
 
         <section className="p-md" aria-label="Customer details">
-          <h3 className="section-title">Customer Details</h3>
+          <div className="flex-row justify-between items-center mb-md">
+            <h3 className="section-title m-0">Customer Details</h3>
+            <Button variant="secondary" className={`${styles.editBtn} text-xs`} onClick={() => setActiveForm('edit')}>Edit</Button>
+          </div>
           <dl className="card-base flex-col gap-sm">
             <div><dt className="text-muted">Name:</dt> <dd>{customer.name}</dd></div>
             <div><dt className="text-muted">Phone:</dt> <dd>{customer.phone}</dd></div>
@@ -153,6 +159,17 @@ export function ActiveLedgerView({ customerId, onBack }: Props) {
 
       {activeForm === 'pay' && (
         <ReceivePayForm onSubmit={handlePaySubmit} onCancel={() => setActiveForm(null)} />
+      )}
+
+      {activeForm === 'edit' && (
+        <CustomerForm
+          initialData={customer}
+          onCancel={() => setActiveForm(null)}
+          onSuccess={() => {
+            setActiveForm(null);
+            fetchLedger();
+          }}
+        />
       )}
     </article>
   );
