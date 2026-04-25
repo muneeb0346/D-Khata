@@ -92,31 +92,33 @@ export function ActiveLedgerView({ customerId, onBack }: Props) {
     try {
       const result = await addPendingCredit(customerId, data);
       if (!result.ok) {
-        alert(result.error);
-        return;
+        return result.error;
       }
 
       setActiveForm(null);
       openShareInTemporaryTab();
       fetchLedger();
     } catch {
-      alert('Failed to add credit');
+      return 'Failed to add credit';
     }
+
+    return undefined;
   };
 
   const handlePaySubmit = async (amount: number) => {
     try {
       const result = await processPayment(customerId, amount);
       if (!result.ok) {
-        alert(result.error);
-        return;
+        return result.error;
       }
 
       setActiveForm(null);
       fetchLedger();
     } catch {
-      alert('Failed to process payment');
+      return 'Failed to process payment';
     }
+
+    return undefined;
   };
 
   const handleFileCase = () => {

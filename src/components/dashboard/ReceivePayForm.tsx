@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/Button';
 import styles from './ReceivePayForm.module.css';
 
 interface Props {
-  onSubmit: (amount: number) => Promise<void>;
+  onSubmit: (amount: number) => Promise<string | undefined>;
   onCancel: () => void;
 }
 
@@ -11,6 +11,7 @@ export function ReceivePayForm({ onSubmit, onCancel }: Props) {
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
   const [amountError, setAmountError] = useState('');
+  const [submitError, setSubmitError] = useState('');
 
   const validate = (): boolean => {
     const parsed = Number(amount);
@@ -26,9 +27,13 @@ export function ReceivePayForm({ onSubmit, onCancel }: Props) {
     e.preventDefault();
     if (!validate()) return;
 
+    setSubmitError('');
     setLoading(true);
     try {
-      await onSubmit(Number(amount));
+      const errorMessage = await onSubmit(Number(amount));
+      if (errorMessage) {
+        setSubmitError(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
@@ -38,6 +43,8 @@ export function ReceivePayForm({ onSubmit, onCancel }: Props) {
     <div className={styles.overlay} onClick={onCancel} role="dialog" aria-modal="true" aria-label="Record payment received">
       <section className={styles.sheet} onClick={(e) => e.stopPropagation()}>
         <h3 className={styles.title}>Receive Payment</h3>
+
+        {submitError && <div className="form-error-banner" role="alert" aria-live="assertive">{submitError}</div>}
 
         <form onSubmit={handleSubmit} className="flex-col gap-md" noValidate>
           <div className="flex-col gap-sm">

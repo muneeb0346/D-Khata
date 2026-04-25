@@ -2,8 +2,21 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import styles from './NewCustomerForm.module.css';
 import { createCustomer, updateCustomer } from '@/server/actions';
-import { sanitizeName, sanitizePhone, formatCnic, PHONE_LENGTH, CNIC_MAX_LENGTH } from '@/utils/formatters';
+import { sanitizeName, formatCnic, PHONE_LENGTH, CNIC_MAX_LENGTH } from '@/utils/formatters';
 import { Customer } from '@/types';
+
+const PHONE_PREFIX = '03';
+const PHONE_SUFFIX_LENGTH = PHONE_LENGTH - PHONE_PREFIX.length;
+
+function sanitizePhoneSuffix(raw: string): string {
+  const digits = raw.replace(/\D/g, '');
+
+  if (digits.startsWith(PHONE_PREFIX)) {
+    return digits.slice(PHONE_PREFIX.length, PHONE_LENGTH);
+  }
+
+  return digits.slice(0, PHONE_SUFFIX_LENGTH);
+}
 
 interface Props {
   initialData?: Customer;
@@ -15,7 +28,7 @@ export function CustomerForm({ initialData, onCancel, onSuccess }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [name, setName] = useState(initialData?.name || '');
-  const [phone, setPhone] = useState(initialData?.phone || '');
+  const [phoneSuffix, setPhoneSuffix] = useState(initialData?.phone?.slice(PHONE_PREFIX.length) || '');
   const [cnic, setCnic] = useState(initialData?.cnic || '');
 
   const isEdit = !!initialData;
@@ -31,7 +44,7 @@ export function CustomerForm({ initialData, onCancel, onSuccess }: Props) {
       if (isEdit) {
         const result = await updateCustomer(initialData.id, {
           name: name.trim(),
-          phone,
+          phone: `${PHONE_PREFIX}${phoneSuffix}`,
           address: address || undefined,
           cnic: cnic || undefined,
         });
@@ -43,7 +56,7 @@ export function CustomerForm({ initialData, onCancel, onSuccess }: Props) {
       } else {
         const result = await createCustomer({
           name: name.trim(),
-          phone,
+          phone: `${PHONE_PREFIX}${phoneSuffix}`,
           address: address || undefined,
           cnic: cnic || undefined,
         });
@@ -57,9 +70,9 @@ export function CustomerForm({ initialData, onCancel, onSuccess }: Props) {
       onSuccess();
     } catch {
       setError(`Failed to ${isEdit ? 'update' : 'create'} customer.`);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
@@ -67,7 +80,7 @@ export function CustomerForm({ initialData, onCancel, onSuccess }: Props) {
       <section className={styles.sheet} onClick={(e) => e.stopPropagation()}>
         <h2 className={styles.title}>{isEdit ? 'Edit Customer' : 'New Customer'}</h2>
 
-        {error && <div className={styles.errorBanner} role="alert" aria-live="assertive">{error}</div>}
+        {error && <div className="form-error-banner" role="alert" aria-live="assertive">{error}</div>}
 
         <form id="new-customer-form" onSubmit={handleSubmit} className="flex-col gap-md" noValidate>
           <div className="flex-col gap-sm">
@@ -91,10 +104,10 @@ export function CustomerForm({ initialData, onCancel, onSuccess }: Props) {
               name="phone"
               type="tel"
               className={styles.input}
-              placeholder="03001234567"
-              value={phone}
+              placeholder="03XXXXXXXXX"
+              value={`${PHONE_PREFIX}${phoneSuffix}`}
               maxLength={PHONE_LENGTH}
-              onChange={(e) => setPhone(sanitizePhone(e.target.value))}
+              onChange={(e) => setPhoneSuffix(sanitizePhoneSuffix(e.target.value))}
               autoComplete="tel"
             />
           </div>

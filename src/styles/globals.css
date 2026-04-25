@@ -83,6 +83,16 @@ body {
   box-shadow: var(--shadow-sm);
 }
 
+.form-error-banner {
+  background-color: var(--color-danger);
+  color: var(--color-surface);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--spacing-md);
+}
+
 .card-pending {
   border: var(--border-width-md) solid var(--color-warning);
 }

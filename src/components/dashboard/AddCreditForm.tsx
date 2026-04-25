@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/Button';
 import styles from './AddCreditForm.module.css';
 
 interface Props {
-  onSubmit: (data: { amount: number; description: string }) => Promise<void>;
+  onSubmit: (data: { amount: number; description: string }) => Promise<string | undefined>;
   onCancel: () => void;
 }
 
@@ -13,6 +13,7 @@ export function AddCreditForm({ onSubmit, onCancel }: Props) {
   const [loading, setLoading] = useState(false);
   const [descError, setDescError] = useState('');
   const [amountError, setAmountError] = useState('');
+  const [submitError, setSubmitError] = useState('');
 
   const validate = (): boolean => {
     let valid = true;
@@ -39,9 +40,13 @@ export function AddCreditForm({ onSubmit, onCancel }: Props) {
     e.preventDefault();
     if (!validate()) return;
 
+    setSubmitError('');
     setLoading(true);
     try {
-      await onSubmit({ amount: Number(amount), description: description.trim() });
+      const errorMessage = await onSubmit({ amount: Number(amount), description: description.trim() });
+      if (errorMessage) {
+        setSubmitError(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
@@ -51,6 +56,8 @@ export function AddCreditForm({ onSubmit, onCancel }: Props) {
     <div className={styles.overlay} onClick={onCancel} role="dialog" aria-modal="true" aria-label="Add credit transaction">
       <section className={styles.sheet} onClick={(e) => e.stopPropagation()}>
         <h3 className={styles.title}>Add Credit</h3>
+
+        {submitError && <div className="form-error-banner" role="alert" aria-live="assertive">{submitError}</div>}
 
         <form onSubmit={handleSubmit} className="flex-col gap-md" noValidate>
           <div className="flex-col gap-sm">
