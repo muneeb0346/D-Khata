@@ -19,10 +19,12 @@ export function TransactionList({ transactions }: Props) {
         const isSettled = settlement === 'SETTLED';
         const isPartial = settlement === 'PARTIAL';
         const isUnpaid = settlement === 'UNPAID' && type === 'CREDIT';
+        const isDisputed = approval === 'DISPUTED';
 
         const cardClass = [
           'card-base',
           approval === 'PENDING' ? 'card-pending' : '',
+          isDisputed ? 'card-disputed' : '',
           isSettled ? 'status-settled' : '',
           isUnpaid ? 'status-unpaid' : '',
         ].filter(Boolean).join(' ');
@@ -43,10 +45,11 @@ export function TransactionList({ transactions }: Props) {
               <span>{approval} • {settlement}</span>
             </div>
 
-            {(isSettled || isUnpaid || isPartial) && (
+            {(isSettled || isUnpaid || isPartial || isDisputed) && (
               <div className="flex-col items-end mt-sm">
-                {isSettled && <span className="badge-settled">Fully Paid</span>}
+                {isSettled && !isDisputed && <span className="badge-settled">Fully Paid</span>}
                 {isUnpaid && <span className="badge-unpaid">Unpaid</span>}
+                {isDisputed && <span className="badge-disputed">Disputed</span>}
                 {isPartial && (
                   <div className="partial-container">
                     <label htmlFor={`progress-${id}`} className="partial-text">Rs. {remainingBalance} left</label>

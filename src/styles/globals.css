@@ -87,6 +87,11 @@ body {
   border: var(--border-width-md) solid var(--color-warning);
 }
 
+.card-disputed {
+  border: var(--border-width-md) solid var(--color-danger);
+  background: color-mix(in oklab, var(--color-danger) 8%, var(--color-surface));
+}
+
 .section-title {
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-bold);
@@ -136,6 +141,13 @@ body {
 }
 
 .badge-unpaid {
+  font-size: var(--font-size-xs);
+  color: var(--color-danger);
+  font-weight: var(--font-weight-bold);
+  margin-top: var(--spacing-xs);
+}
+
+.badge-disputed {
   font-size: var(--font-size-xs);
   color: var(--color-danger);
   font-weight: var(--font-weight-bold);
