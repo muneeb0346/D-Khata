@@ -2,7 +2,12 @@
 
 import { db } from '@/server/db';
 import { customers, transactions } from '@/server/db/schema';
-import { eq, and, asc, or, ne } from 'drizzle-orm';
+import { eq, and, asc, ne } from 'drizzle-orm';
+
+function hasValidPhone(phone: string) {
+  const digitsOnly = phone.replace(/\D/g, '');
+  return digitsOnly.length >= 10 && digitsOnly.length <= 11;
+}
 
 export async function updateCustomer(customerId: string, customerData: {
   name: string;
@@ -14,7 +19,7 @@ export async function updateCustomer(customerId: string, customerData: {
     throw new Error('Name is required.');
   }
 
-  if (!/^03\d{9}$/.test(customerData.phone)) {
+  if (!hasValidPhone(customerData.phone)) {
     throw new Error('Phone must be 11 digits.');
   }
 
@@ -22,25 +27,23 @@ export async function updateCustomer(customerId: string, customerData: {
     throw new Error('CNIC must follow the format xxxxx-xxxxxxx-x.');
   }
 
-  const conditions = [
-    and(
+  const existingCustomerByPhone = await db.query.customers.findFirst({
+    where: and(
       eq(customers.phone, customerData.phone),
       ne(customers.id, customerId)
-    )
-  ];
-
-  if (customerData.cnic) {
-    conditions.push(
-      and(
-        eq(customers.cnic, customerData.cnic),
-        ne(customers.id, customerId)
-      )
-    );
-  }
-
-  const existingCustomer = await db.query.customers.findFirst({
-    where: or(...conditions),
+    ),
   });
+
+  const existingCustomerByCnic = customerData.cnic
+    ? await db.query.customers.findFirst({
+        where: and(
+          eq(customers.cnic, customerData.cnic),
+          ne(customers.id, customerId)
+        ),
+      })
+    : null;
+
+  const existingCustomer = existingCustomerByPhone ?? existingCustomerByCnic;
 
   if (existingCustomer) {
     throw new Error('Another customer with this phone number or CNIC already exists.');
@@ -70,22 +73,24 @@ export async function createCustomer(customerData: {
     throw new Error('Name is required.');
   }
 
-  if (!/^03\d{9}$/.test(customerData.phone)) {
+  if (!hasValidPhone(customerData.phone)) {
     throw new Error('Phone must be 11 digits.');
   }
 
   if (customerData.cnic && !/^\d{5}-\d{7}-\d{1}$/.test(customerData.cnic)) {
     throw new Error('CNIC must follow the format xxxxx-xxxxxxx-x.');
   }
-  const conditions = [eq(customers.phone, customerData.phone)];
-
-  if (customerData.cnic) {
-    conditions.push(eq(customers.cnic, customerData.cnic));
-  }
-
-  const existingCustomer = await db.query.customers.findFirst({
-    where: or(...conditions),
+  const existingCustomerByPhone = await db.query.customers.findFirst({
+    where: eq(customers.phone, customerData.phone),
   });
+
+  const existingCustomerByCnic = customerData.cnic
+    ? await db.query.customers.findFirst({
+        where: eq(customers.cnic, customerData.cnic),
+      })
+    : null;
+
+  const existingCustomer = existingCustomerByPhone ?? existingCustomerByCnic;
 
   if (existingCustomer) {
     throw new Error('A customer with this phone number or CNIC already exists.');

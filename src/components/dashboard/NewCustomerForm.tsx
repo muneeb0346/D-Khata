@@ -43,12 +43,14 @@ export function CustomerForm({ initialData, onCancel, onSuccess }: Props) {
           cnic: cnic || undefined,
         });
       }
+
+      onSuccess();
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : `Failed to ${isEdit ? 'update' : 'create'} customer.`;
       setError(errorMsg);
-    } finally {
-      setLoading(false);
     }
+
+    setLoading(false);
   };
 
   return (
