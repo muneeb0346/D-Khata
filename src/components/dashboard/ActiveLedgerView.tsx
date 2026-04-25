@@ -6,6 +6,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import styles from './ActiveLedgerView.module.css';
 import { getLedger, addPendingCredit, processPayment } from '@/server/actions';
 import { TransactionList } from '@/components/khata/TransactionList';
+import { BalanceGraph } from '@/components/charts/BalanceGraph';
 
 interface Props {
   customerId: string;
@@ -104,8 +105,13 @@ export function ActiveLedgerView({ customerId, onBack }: Props) {
           </div>
         )}
 
-        <h3 className="sr-only">Transaction List</h3>
         <div className="p-md pb-0">
+          <section aria-label="Balance history chart">
+            <h3 className="sr-only">Balance History</h3>
+            <BalanceGraph transactions={transactions} />
+          </section>
+
+          <h3 className="sr-only">Transaction List</h3>
           <TransactionList transactions={transactions} />
         </div>
 
