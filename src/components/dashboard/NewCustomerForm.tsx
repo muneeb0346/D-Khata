@@ -29,25 +29,34 @@ export function CustomerForm({ initialData, onCancel, onSuccess }: Props) {
     setLoading(true);
     try {
       if (isEdit) {
-        await updateCustomer(initialData.id, {
+        const result = await updateCustomer(initialData.id, {
           name: name.trim(),
           phone,
           address: address || undefined,
           cnic: cnic || undefined,
         });
+
+        if (!result.ok) {
+          setError(result.error);
+          return;
+        }
       } else {
-        await createCustomer({
+        const result = await createCustomer({
           name: name.trim(),
           phone,
           address: address || undefined,
           cnic: cnic || undefined,
         });
+
+        if (!result.ok) {
+          setError(result.error);
+          return;
+        }
       }
 
       onSuccess();
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : `Failed to ${isEdit ? 'update' : 'create'} customer.`;
-      setError(errorMsg);
+    } catch {
+      setError(`Failed to ${isEdit ? 'update' : 'create'} customer.`);
     }
 
     setLoading(false);

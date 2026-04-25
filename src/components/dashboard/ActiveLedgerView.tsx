@@ -18,6 +18,7 @@ interface Props {
 export function ActiveLedgerView({ customerId, onBack }: Props) {
   const [ledgerData, setLedgerData] = useState<LedgerData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [activeForm, setActiveForm] = useState<'credit' | 'pay' | 'edit' | null>(null);
 
   const fetchLedger = useCallback(async ({ showLoading = true }: { showLoading?: boolean } = {}) => {
@@ -25,10 +26,21 @@ export function ActiveLedgerView({ customerId, onBack }: Props) {
       setLoading(true);
     }
 
+    setError('');
+
     try {
-      const data = await getLedger(customerId);
-      setLedgerData(data);
+      const result = await getLedger(customerId);
+      if (!result.ok) {
+        setLedgerData(null);
+        setError(result.error);
+        alert(result.error);
+        return;
+      }
+
+      setLedgerData(result.ledgerData);
     } catch {
+      setLedgerData(null);
+      setError('Failed to load ledger');
       alert('Failed to load ledger');
     } finally {
       setLoading(false);
@@ -78,22 +90,32 @@ export function ActiveLedgerView({ customerId, onBack }: Props) {
 
   const handleCreditSubmit = async (data: { amount: number; description: string }) => {
     try {
-      await addPendingCredit(customerId, data);
+      const result = await addPendingCredit(customerId, data);
+      if (!result.ok) {
+        alert(result.error);
+        return;
+      }
+
       setActiveForm(null);
       openShareInTemporaryTab();
       fetchLedger();
-    } catch (e) {
-      alert(e instanceof Error ? e.message : "Failed to add credit");
+    } catch {
+      alert('Failed to add credit');
     }
   };
 
   const handlePaySubmit = async (amount: number) => {
     try {
-      await processPayment(customerId, amount);
+      const result = await processPayment(customerId, amount);
+      if (!result.ok) {
+        alert(result.error);
+        return;
+      }
+
       setActiveForm(null);
       fetchLedger();
-    } catch (e) {
-      alert(e instanceof Error ? e.message : "Failed to process payment");
+    } catch {
+      alert('Failed to process payment');
     }
   };
 
@@ -104,7 +126,23 @@ export function ActiveLedgerView({ customerId, onBack }: Props) {
     alert('Customer information copied to clipboard for filing a case.');
   };
 
-  if (loading || !ledgerData) return <Spinner />;
+  if (loading) return <Spinner />;
+
+  if (error && !ledgerData) {
+    return (
+      <article className="flex-col h-full p-md" aria-live="assertive">
+        <div className="card-base flex-col gap-sm">
+          <strong className="text-debt">{error}</strong>
+          <div className="flex-row gap-md">
+            <Button variant="secondary" onClick={onBack} className="w-auto">← Back</Button>
+            <Button variant="primary" onClick={() => fetchLedger()}>Try Again</Button>
+          </div>
+        </div>
+      </article>
+    );
+  }
+
+  if (!ledgerData) return null;
 
   const { customer, transactions, pendingTransaction } = ledgerData;
   const isLocked = !!pendingTransaction;

@@ -124,45 +124,47 @@ describe('Server Actions', () => {
 
       const result = await createCustomer({ name: 'John Doe', phone: '1234567890' });
 
-      expect(result).toEqual(mockCustomer);
+      expect(result).toEqual({ ok: true, customer: mockCustomer });
       expect(db.insert).toHaveBeenCalled();
-      expect(result.totalBalance).toBe(0);
+      if (result.ok) {
+        expect(result.customer.totalBalance).toBe(0);
+      }
     });
 
-    it('throws when name is invalid', async () => {
+    it('returns an error when name is invalid', async () => {
       await expect(
         createCustomer({ name: 'Ali123', phone: '03001234567' })
-      ).rejects.toThrow('Name is required.');
+      ).resolves.toEqual({ ok: false, error: 'Name is required.' });
     });
 
-    it('throws when phone is invalid', async () => {
+    it('returns an error when phone is invalid', async () => {
       await expect(
         createCustomer({ name: 'Ali Khan', phone: '1234' })
-      ).rejects.toThrow('Phone must be 11 digits.');
+      ).resolves.toEqual({ ok: false, error: 'Phone must be 11 digits.' });
     });
 
-    it('throws when cnic format is invalid', async () => {
+    it('returns an error when cnic format is invalid', async () => {
       await expect(
         createCustomer({ name: 'Ali Khan', phone: '03001234567', cnic: '123' })
-      ).rejects.toThrow('CNIC must follow the format xxxxx-xxxxxxx-x.');
+      ).resolves.toEqual({ ok: false, error: 'CNIC must follow the format xxxxx-xxxxxxx-x.' });
     });
 
-    it('throws when another customer already exists by phone', async () => {
+    it('returns an error when another customer already exists by phone', async () => {
       mocks.queryMock.customers.findFirst.mockResolvedValueOnce({ id: 'existing' });
 
       await expect(
         createCustomer({ name: 'Ali Khan', phone: '03001234567' })
-      ).rejects.toThrow('A customer with this phone number or CNIC already exists.');
+      ).resolves.toEqual({ ok: false, error: 'A customer with this phone number or CNIC already exists.' });
     });
 
-    it('throws when another customer already exists by cnic', async () => {
+    it('returns an error when another customer already exists by cnic', async () => {
       mocks.queryMock.customers.findFirst
         .mockResolvedValueOnce(null)
         .mockResolvedValueOnce({ id: 'existing-cnic' });
 
       await expect(
         createCustomer({ name: 'Ali Khan', phone: '03001234567', cnic: '12345-1234567-1' })
-      ).rejects.toThrow('A customer with this phone number or CNIC already exists.');
+      ).resolves.toEqual({ ok: false, error: 'A customer with this phone number or CNIC already exists.' });
     });
   });
 
@@ -188,16 +190,16 @@ describe('Server Actions', () => {
         cnic: '12345-1234567-1',
       });
 
-      expect(result).toEqual(updatedCustomer);
+      expect(result).toEqual({ ok: true, customer: updatedCustomer });
       expect(db.update).toHaveBeenCalled();
     });
 
-    it('throws when another customer exists during update', async () => {
+    it('returns an error when another customer exists during update', async () => {
       mocks.queryMock.customers.findFirst.mockResolvedValueOnce({ id: 'c2' });
 
       await expect(
         updateCustomer('c1', { name: 'Ali', phone: '03001234567' })
-      ).rejects.toThrow('Another customer with this phone number or CNIC already exists.');
+      ).resolves.toEqual({ ok: false, error: 'Another customer with this phone number or CNIC already exists.' });
     });
   });
 
@@ -213,7 +215,7 @@ describe('Server Actions', () => {
 
       const result = await getLedger('c1');
 
-      expect(result).toEqual({ customer, transactions: txns, pendingTransaction: pending });
+      expect(result).toEqual({ ok: true, ledgerData: { customer, transactions: txns, pendingTransaction: pending } });
     });
 
     it('returns null pendingTransaction when none exists', async () => {
@@ -226,33 +228,32 @@ describe('Server Actions', () => {
 
       const result = await getLedger('c1');
 
-      expect(result.pendingTransaction).toBeNull();
-      expect(result.transactions).toEqual(txns);
+      expect(result).toEqual({ ok: true, ledgerData: { customer, transactions: txns, pendingTransaction: null } });
     });
 
-    it('throws when customer does not exist', async () => {
+    it('returns an error when customer does not exist', async () => {
       mocks.queryMock.customers.findFirst.mockResolvedValueOnce(null);
 
-      await expect(getLedger('missing-customer')).rejects.toThrow('Customer not found');
+      await expect(getLedger('missing-customer')).resolves.toEqual({ ok: false, error: 'Customer not found' });
     });
   });
 
   describe('addPendingCredit', () => {
-    it('throws when customer does not exist', async () => {
+    it('returns an error when customer does not exist', async () => {
       mocks.queryMock.customers.findFirst.mockResolvedValueOnce(null);
 
       await expect(
         addPendingCredit('missing', { description: 'Milk', amount: 100 })
-      ).rejects.toThrow('Customer not found');
+      ).resolves.toEqual({ ok: false, error: 'Customer not found' });
     });
 
-    it('throws an error if there is already a pending transaction', async () => {
+    it('returns an error if there is already a pending transaction', async () => {
       mocks.queryMock.customers.findFirst.mockResolvedValueOnce({ id: 'c1', totalBalance: 0 });
       mocks.queryMock.transactions.findFirst.mockResolvedValueOnce({ id: 't1', approval: 'PENDING' });
 
       await expect(
         addPendingCredit('c1', { description: 'Milk', amount: 100 })
-      ).rejects.toThrow('Account is locked: a PENDING transaction must be verified before new credit can be added.');
+      ).resolves.toEqual({ ok: false, error: 'Account is locked: a PENDING transaction must be verified before new credit can be added.' });
     });
 
     it('adds pending credit successfully when no pending transactions exist', async () => {
@@ -264,28 +265,28 @@ describe('Server Actions', () => {
 
       const result = await addPendingCredit('c1', { description: 'Milk', amount: 100 });
 
-      expect(result).toEqual(newTxn);
+      expect(result).toEqual({ ok: true, transaction: newTxn });
       expect(mocks.txMock.insert).toHaveBeenCalled();
       expect(mocks.txMock.update).toHaveBeenCalled();
     });
   });
 
   describe('resolveTransaction', () => {
-    it('throws when customer does not exist', async () => {
+    it('returns an error when customer does not exist', async () => {
       mocks.queryMock.customers.findFirst.mockResolvedValueOnce(null);
 
       await expect(
         resolveTransaction('c1', 't1', 'VERIFIED')
-      ).rejects.toThrow('Customer not found');
+      ).resolves.toEqual({ ok: false, error: 'Customer not found' });
     });
 
-    it('throws when no pending transaction exists', async () => {
+    it('returns an error when no pending transaction exists', async () => {
       mocks.queryMock.customers.findFirst.mockResolvedValueOnce({ id: 'c1', totalBalance: 0 });
       mocks.queryMock.transactions.findFirst.mockResolvedValueOnce(null);
 
       await expect(
         resolveTransaction('c1', 'missing', 'VERIFIED')
-      ).rejects.toThrow('No pending transaction found to resolve');
+      ).resolves.toEqual({ ok: false, error: 'No pending transaction found to resolve' });
     });
 
     it('verifies a transaction and unlocks ledger', async () => {
@@ -298,7 +299,7 @@ describe('Server Actions', () => {
 
       const result = await resolveTransaction('c1', 't1', 'VERIFIED');
 
-      expect(result).toEqual(updatedTxn);
+      expect(result).toEqual({ ok: true, transaction: updatedTxn });
       expect(mocks.txMock.update).toHaveBeenCalled();
       expect(mocks.setMock).toHaveBeenCalledWith({ approval: 'VERIFIED', settlement: 'UNPAID', remainingBalance: 100 });
     });
@@ -321,7 +322,7 @@ describe('Server Actions', () => {
 
       const result = await resolveTransaction('c1', 't1', 'VERIFIED');
 
-      expect(result).toEqual(updatedTxn);
+      expect(result).toEqual({ ok: true, transaction: updatedTxn });
       expect(mocks.setMock).toHaveBeenCalledWith({ approval: 'VERIFIED', settlement: 'SETTLED', remainingBalance: 0 });
     });
 
@@ -334,21 +335,21 @@ describe('Server Actions', () => {
 
       const result = await resolveTransaction('c1', 't1', 'DISPUTED');
 
-      expect(result).toEqual(updatedTxn);
+      expect(result).toEqual({ ok: true, transaction: updatedTxn });
       expect(mocks.setMock).toHaveBeenCalledWith({ approval: 'DISPUTED', settlement: 'SETTLED', remainingBalance: 0 });
       expect(mocks.setMock).toHaveBeenCalledWith({ totalBalance: 0 });
     });
   });
 
   describe('processPayment', () => {
-    it('throws when payment amount is not positive', async () => {
-      await expect(processPayment('c1', 0)).rejects.toThrow('Payment amount must be positive');
+    it('returns an error when payment amount is not positive', async () => {
+      await expect(processPayment('c1', 0)).resolves.toEqual({ ok: false, error: 'Payment amount must be positive' });
     });
 
-    it('throws when customer does not exist', async () => {
+    it('returns an error when customer does not exist', async () => {
       mocks.queryMock.customers.findFirst.mockResolvedValueOnce(null);
 
-      await expect(processPayment('missing', 100)).rejects.toThrow('Customer not found');
+      await expect(processPayment('missing', 100)).resolves.toEqual({ ok: false, error: 'Customer not found' });
     });
 
     it('applies FIFO correctly to multiple UNPAID transactions', async () => {
@@ -370,8 +371,7 @@ describe('Server Actions', () => {
 
       expect(mocks.setMock).toHaveBeenCalledWith({ totalBalance: 150 });
 
-      expect(result.newBalance).toBe(150);
-      expect(result.surplus).toBe(0);
+      expect(result).toEqual({ ok: true, paymentTransaction: paymentTxn, newBalance: 150, surplus: 0 });
     });
 
     it('handles Advanced Credit logic when payment exceeds debt', async () => {
@@ -390,8 +390,7 @@ describe('Server Actions', () => {
 
       expect(mocks.setMock).toHaveBeenCalledWith({ totalBalance: -50 });
 
-      expect(result.newBalance).toBe(-50);
-      expect(result.surplus).toBe(50);
+      expect(result).toEqual({ ok: true, paymentTransaction: paymentTxn, newBalance: -50, surplus: 50 });
     });
   });
 });

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { getLedger, resolveTransaction } from '@/server/actions';
 import { BalanceGraph } from '@/components/charts/BalanceGraph';
 import { TransactionList } from '@/components/khata/TransactionList';
@@ -16,39 +16,74 @@ export default function PublicKhata() {
 
   const [ledgerData, setLedgerData] = useState<LedgerData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  const fetchLedger = async () => {
+  const fetchLedger = useCallback(async () => {
     setLoading(true);
+    setError('');
     try {
-      const data = await getLedger(customerId);
-      setLedgerData(data);
-    } catch (e) {
-      alert("Failed to load ledger");
+      const result = await getLedger(customerId);
+      if (!result.ok) {
+        setLedgerData(null);
+        setError(result.error);
+        alert(result.error);
+        return;
+      }
+
+      setLedgerData(result.ledgerData);
+    } catch {
+      setLedgerData(null);
+      setError('Failed to load ledger');
+      alert('Failed to load ledger');
     } finally {
       setLoading(false);
     }
-  };
+  }, [customerId]);
 
   useEffect(() => {
-    if (customerId) fetchLedger();
-  }, [customerId]);
+    const timerId = window.setTimeout(() => {
+      void fetchLedger();
+    }, 0);
+
+    return () => window.clearTimeout(timerId);
+  }, [fetchLedger]);
 
   const handleResolve = async (resolution: 'VERIFIED' | 'DISPUTED') => {
     if (!ledgerData?.pendingTransaction) return;
     try {
-      await resolveTransaction(customerId, ledgerData.pendingTransaction.id, resolution);
+      const result = await resolveTransaction(customerId, ledgerData.pendingTransaction.id, resolution);
+      if (!result.ok) {
+        alert(result.error);
+        return;
+      }
+
       fetchLedger();
-    } catch (e) {
-      alert(e instanceof Error ? e.message : "Failed to resolve transaction");
+    } catch {
+      alert('Failed to resolve transaction');
     }
   };
 
-  if (loading || !ledgerData) {
+  if (loading) {
     return (
       <main className="layout-container flex-col">
         <Spinner />
       </main>
     );
+  }
+
+  if (error && !ledgerData) {
+    return (
+      <main className="layout-container flex-col p-md" aria-live="assertive">
+        <div className="card-base flex-col gap-sm">
+          <strong className="text-debt">{error}</strong>
+          <Button variant="primary" onClick={fetchLedger}>Try Again</Button>
+        </div>
+      </main>
+    );
+  }
+
+  if (!ledgerData) {
+    return null;
   }
 
   const { customer, transactions, pendingTransaction } = ledgerData;
