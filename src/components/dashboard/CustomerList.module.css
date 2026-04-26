@@ -90,6 +90,11 @@
   margin: 0;
 }
 
+.listItemWrapper {
+  list-style: none;
+  width: 100%;
+}
+
 .listItem {
   width: 100%;
   display: flex;
@@ -101,6 +106,8 @@
   box-shadow: var(--shadow-sm);
   cursor: pointer;
   border: var(--border-width-sm) solid var(--color-border);
+  appearance: none;
+  text-align: left;
 }
 
 .name {
