@@ -111,12 +111,7 @@ function hasValidPhone(phone: string) {
   return digitsOnly.length >= 10 && digitsOnly.length <= 11;
 }
 
-export async function updateCustomer(customerId: string, customerData: {
-  name: string;
-  phone: string;
-  address?: string;
-  cnic?: string;
-}): Promise<CustomerActionResult> {
+function validateCustomerData(customerData: CustomerPayload): ActionFailure | null {
   if (!customerData.name || /\d/.test(customerData.name)) {
     return { ok: false, error: 'Name is required.' };
   }
@@ -129,23 +124,38 @@ export async function updateCustomer(customerId: string, customerData: {
     return { ok: false, error: 'CNIC must follow the format xxxxx-xxxxxxx-x.' };
   }
 
+  return null;
+}
+
+async function findExistingCustomerByPhoneOrCnic(customerData: CustomerPayload, excludeCustomerId?: string) {
+  const phoneWhere = excludeCustomerId
+    ? and(eq(customers.phone, customerData.phone), ne(customers.id, excludeCustomerId))
+    : eq(customers.phone, customerData.phone);
+
+  const cnicWhere = excludeCustomerId
+    ? and(eq(customers.cnic, customerData.cnic as string), ne(customers.id, excludeCustomerId))
+    : eq(customers.cnic, customerData.cnic as string);
+
   const existingCustomerByPhone = await db.query.customers.findFirst({
-    where: and(
-      eq(customers.phone, customerData.phone),
-      ne(customers.id, customerId)
-    ),
+    where: phoneWhere,
   });
 
   const existingCustomerByCnic = customerData.cnic
     ? await db.query.customers.findFirst({
-      where: and(
-        eq(customers.cnic, customerData.cnic),
-        ne(customers.id, customerId)
-      ),
+      where: cnicWhere,
     })
     : null;
 
-  const existingCustomer = existingCustomerByPhone ?? existingCustomerByCnic;
+  return existingCustomerByPhone ?? existingCustomerByCnic;
+}
+
+export async function updateCustomer(customerId: string, customerData: CustomerPayload): Promise<CustomerActionResult> {
+  const validationError = validateCustomerData(customerData);
+  if (validationError) {
+    return validationError;
+  }
+
+  const existingCustomer = await findExistingCustomerByPhoneOrCnic(customerData, customerId);
 
   if (existingCustomer) {
     return { ok: false, error: 'Another customer with this phone number or CNIC already exists.' };
@@ -166,28 +176,12 @@ export async function updateCustomer(customerId: string, customerData: {
 }
 
 export async function createCustomer(customerData: CustomerPayload): Promise<CustomerActionResult> {
-  if (!customerData.name || /\d/.test(customerData.name)) {
-    return { ok: false, error: 'Name is required.' };
+  const validationError = validateCustomerData(customerData);
+  if (validationError) {
+    return validationError;
   }
 
-  if (!hasValidPhone(customerData.phone)) {
-    return { ok: false, error: 'Phone must be 11 digits.' };
-  }
-
-  if (customerData.cnic && !/^\d{5}-\d{7}-\d{1}$/.test(customerData.cnic)) {
-    return { ok: false, error: 'CNIC must follow the format xxxxx-xxxxxxx-x.' };
-  }
-  const existingCustomerByPhone = await db.query.customers.findFirst({
-    where: eq(customers.phone, customerData.phone),
-  });
-
-  const existingCustomerByCnic = customerData.cnic
-    ? await db.query.customers.findFirst({
-      where: eq(customers.cnic, customerData.cnic),
-    })
-    : null;
-
-  const existingCustomer = existingCustomerByPhone ?? existingCustomerByCnic;
+  const existingCustomer = await findExistingCustomerByPhoneOrCnic(customerData);
 
   if (existingCustomer) {
     return { ok: false, error: 'A customer with this phone number or CNIC already exists.' };
