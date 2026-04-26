@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import styles from './BalanceGraph.module.css';
 import { Transaction } from '@/types';
@@ -17,16 +16,29 @@ const CHART_HEIGHT = 200;
 
 interface CustomTooltipProps {
   active?: boolean;
-  payload?: Array<{ value: number }>;
+  payload?: Array<{
+    value: number;
+    payload: {
+      dateLabel: string;
+      balance: number;
+      changeAmount: number;
+      changeLabel: string;
+      changeKind: 'Debt' | 'Repayment' | 'No change';
+    };
+  }>;
   label?: string;
 }
 
-const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
+const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
+    const point = payload[0].payload;
+    const signedAmount = point.changeKind === 'Repayment' ? -point.changeAmount : point.changeAmount;
+    const signedAmountText = `${signedAmount >= 0 ? '+' : '-'}${Math.abs(signedAmount)}`;
+    const valueClassName = signedAmount >= 0 ? styles.tooltipPositive : styles.tooltipNegative;
+
     return (
       <div className={styles.tooltip} role="tooltip">
-        <p className={styles.tooltipLabel}>{label}</p>
-        <p className={styles.tooltipValue}>Rs. {payload[0].value}</p>
+        <p className={`${styles.tooltipValue} ${valueClassName}`}>{signedAmountText}</p>
       </div>
     );
   }
@@ -38,20 +50,44 @@ export function BalanceGraph({ transactions, isDebt }: Props) {
   const uniqueId = isDebt ? 'debt' : 'advance';
   const gradientId = `colorBalance-${uniqueId}`;
 
-  const data = transactions.reduce<Array<{ date: string; balance: number }>>((points, t) => {
+  const data = transactions.reduce<Array<{
+    x: string;
+    dateLabel: string;
+    balance: number;
+    changeAmount: number;
+    changeKind: 'Debt' | 'Repayment' | 'No change';
+    changeLabel: string;
+  }>>((points, t, index) => {
     const previousBalance = points.length > 0 ? points[points.length - 1].balance : 0;
     let nextBalance = previousBalance;
+    let changeAmount = 0;
+    let changeKind: 'Debt' | 'Repayment' | 'No change' = 'No change';
 
     if (t.approval === 'VERIFIED') {
-      if (t.type === 'CREDIT') nextBalance = previousBalance + t.originalAmount;
-      if (t.type === 'PAYMENT') nextBalance = previousBalance - t.originalAmount;
+      if (t.type === 'CREDIT') {
+        nextBalance = previousBalance + t.originalAmount;
+        changeAmount = t.originalAmount;
+        changeKind = 'Debt';
+      }
+
+      if (t.type === 'PAYMENT') {
+        nextBalance = previousBalance - t.originalAmount;
+        changeAmount = t.originalAmount;
+        changeKind = 'Repayment';
+      }
     }
+
+    const dateLabel = new Date(t.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 
     return [
       ...points,
       {
-        date: new Date(t.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+        x: `${new Date(t.date).toISOString()}-${index}`,
+        dateLabel,
         balance: nextBalance,
+        changeAmount,
+        changeKind,
+        changeLabel: nextBalance < 0 ? 'Advance' : 'Balance',
       },
     ];
   }, []);
@@ -66,7 +102,14 @@ export function BalanceGraph({ transactions, isDebt }: Props) {
               <stop offset="95%" stopColor={chartColor} stopOpacity="var(--opacity-transparent)" />
             </linearGradient>
           </defs>
-          <XAxis dataKey="date" fontSize="var(--font-size-xs)" tickLine={false} axisLine={false} minTickGap={CHART_TICK_GAP} />
+          <XAxis
+            dataKey="x"
+            fontSize="var(--font-size-xs)"
+            tickLine={false}
+            axisLine={false}
+            minTickGap={CHART_TICK_GAP}
+            tickFormatter={(_, index) => data[index]?.dateLabel ?? ''}
+          />
           <YAxis fontSize="var(--font-size-xs)" tickLine={false} axisLine={false} width={CHART_Y_AXIS_WIDTH} />
           <Tooltip content={<CustomTooltip />} />
           <Area type="monotone" dataKey="balance" stroke={chartColor} fillOpacity="var(--opacity-full)" fill={`url(#${gradientId})`} />

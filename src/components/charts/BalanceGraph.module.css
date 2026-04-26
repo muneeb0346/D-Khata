@@ -4,6 +4,11 @@
   margin-bottom: var(--spacing-xl);
 }
 
+.container :focus,
+.container :focus-visible {
+  outline: none;
+}
+
 .tooltip {
   background-color: var(--color-surface);
   border-radius: var(--radius-md);
@@ -18,9 +23,22 @@
   margin: 0;
 }
 
+.tooltipDelta {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
 .tooltipValue {
   font-size: var(--font-size-md);
   font-weight: var(--font-weight-bold);
-  color: var(--color-primary);
   margin: 0;
+}
+
+.tooltipPositive {
+  color: var(--color-danger);
+}
+
+.tooltipNegative {
+  color: var(--color-primary);
 }
