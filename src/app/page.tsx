@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { CustomerList } from '@/components/dashboard/CustomerList';
 import { CustomerForm } from '@/components/dashboard/NewCustomerForm';
 import { ActiveLedgerView } from '@/components/dashboard/ActiveLedgerView';
@@ -24,6 +24,10 @@ export default function Dashboard() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
+  const hasViewHistoryEntryRef = useRef(false);
+  const ignoreNextPopStateRef = useRef(false);
+  const viewRef = useRef<'list' | 'new' | 'ledger'>(view);
+  const selectedCustomerIdRef = useRef<string | null>(selectedCustomerId);
 
   const fetchAllCustomers = async () => {
     setIsLoading(true);
@@ -45,6 +49,60 @@ export default function Dashboard() {
   const handleBackToList = useCallback(() => {
     setView('list');
     setSelectedCustomerId(null);
+  }, []);
+
+  useEffect(() => {
+    viewRef.current = view;
+    selectedCustomerIdRef.current = selectedCustomerId;
+
+    if (view !== 'list' && !hasViewHistoryEntryRef.current) {
+      window.history.pushState({ ...window.history.state, dKhataDashboardView: view }, '', window.location.href);
+      hasViewHistoryEntryRef.current = true;
+      return;
+    }
+
+    if (view === 'list' && hasViewHistoryEntryRef.current) {
+      ignoreNextPopStateRef.current = true;
+      hasViewHistoryEntryRef.current = false;
+      window.history.back();
+    }
+  }, [selectedCustomerId, view]);
+
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      if (ignoreNextPopStateRef.current) {
+        ignoreNextPopStateRef.current = false;
+        return;
+      }
+
+      const state = event.state as { dKhataDashboardView?: 'new' | 'ledger' } | null;
+
+      if (state?.dKhataDashboardView) {
+        hasViewHistoryEntryRef.current = true;
+
+        if (viewRef.current !== state.dKhataDashboardView) {
+          if (state.dKhataDashboardView === 'ledger' && !selectedCustomerIdRef.current) {
+            const savedCustomerId = window.localStorage.getItem(DASHBOARD_CUSTOMER_KEY);
+            if (savedCustomerId) {
+              setSelectedCustomerId(savedCustomerId);
+            }
+          }
+
+          setView(state.dKhataDashboardView);
+        }
+
+        return;
+      }
+
+      if (viewRef.current !== 'list') {
+        hasViewHistoryEntryRef.current = false;
+        setSelectedCustomerId(null);
+        setView('list');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
   useEffect(() => {

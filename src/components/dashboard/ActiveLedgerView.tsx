@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { AddCreditForm } from '@/components/dashboard/AddCreditForm';
 import { ReceivePayForm } from '@/components/dashboard/ReceivePayForm';
@@ -22,6 +22,9 @@ export function ActiveLedgerView({ customerId, onBack }: Props) {
   const [error, setError] = useState('');
   const [activeForm, setActiveForm] = useState<'credit' | 'pay' | 'edit' | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const hasModalHistoryEntryRef = useRef(false);
+  const ignoreNextPopStateRef = useRef(false);
+  const activeFormRef = useRef<'credit' | 'pay' | 'edit' | null>(null);
 
   const fetchLedger = useCallback(async ({ showLoading = true }: { showLoading?: boolean } = {}) => {
     if (showLoading) {
@@ -56,6 +59,39 @@ export function ActiveLedgerView({ customerId, onBack }: Props) {
 
     return () => window.clearTimeout(timerId);
   }, [fetchLedger]);
+
+  useEffect(() => {
+    activeFormRef.current = activeForm;
+
+    if (activeForm && !hasModalHistoryEntryRef.current) {
+      window.history.pushState({ ...window.history.state, dKhataModal: true }, '', window.location.href);
+      hasModalHistoryEntryRef.current = true;
+      return;
+    }
+
+    if (!activeForm && hasModalHistoryEntryRef.current) {
+      ignoreNextPopStateRef.current = true;
+      hasModalHistoryEntryRef.current = false;
+      window.history.back();
+    }
+  }, [activeForm]);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      if (ignoreNextPopStateRef.current) {
+        ignoreNextPopStateRef.current = false;
+        return;
+      }
+
+      if (activeFormRef.current) {
+        hasModalHistoryEntryRef.current = false;
+        setActiveForm(null);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   const getWhatsAppShareUrl = () => {
     if (!ledgerData?.customer?.phone) return;
