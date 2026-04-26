@@ -1,0 +1,35 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, var(--opacity-low));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: calc(var(--z-sticky) + 2);
+  padding: var(--spacing-md);
+}
+
+.sheet {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  width: 100%;
+  max-width: 28rem;
+  box-shadow: var(--shadow-up);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-main);
+}
+
+.message {
+  margin: 0;
+  color: var(--color-text-main);
+  line-height: var(--line-height-normal);
+}

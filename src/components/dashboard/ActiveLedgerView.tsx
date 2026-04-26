@@ -9,11 +9,23 @@ import { getLedger, addPendingCredit, processPayment, deleteCustomer } from '@/s
 import { TransactionList } from '@/components/khata/TransactionList';
 import balanceStyles from '@/components/khata/BalanceSummary.module.css';
 import { BalanceGraph } from '@/components/charts/BalanceGraph';
+import { ModalDialog } from '@/components/ui/ModalDialog';
 import { LedgerData } from '@/types';
 
 interface Props {
   customerId: string;
   onBack: () => void;
+}
+
+interface DialogState {
+  title: string;
+  message: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
+  showCancel?: boolean;
+  variant?: 'primary' | 'danger';
+  onConfirm: () => void;
+  onCancel: () => void;
 }
 
 export function ActiveLedgerView({ customerId, onBack }: Props) {
@@ -22,6 +34,7 @@ export function ActiveLedgerView({ customerId, onBack }: Props) {
   const [error, setError] = useState('');
   const [activeForm, setActiveForm] = useState<'credit' | 'pay' | 'edit' | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [dialogState, setDialogState] = useState<DialogState | null>(null);
   const hasModalHistoryEntryRef = useRef(false);
   const ignoreNextPopStateRef = useRef(false);
   const activeFormRef = useRef<'credit' | 'pay' | 'edit' | null>(null);
@@ -38,7 +51,14 @@ export function ActiveLedgerView({ customerId, onBack }: Props) {
       if (!result.ok) {
         setLedgerData(null);
         setError(result.error);
-        alert(result.error);
+        setDialogState({
+          title: 'Unable to Load Ledger',
+          message: result.error,
+          confirmLabel: 'OK',
+          variant: 'danger',
+          onConfirm: () => setDialogState(null),
+          onCancel: () => setDialogState(null),
+        });
         return;
       }
 
@@ -46,7 +66,14 @@ export function ActiveLedgerView({ customerId, onBack }: Props) {
     } catch {
       setLedgerData(null);
       setError('Failed to load ledger');
-      alert('Failed to load ledger');
+      setDialogState({
+        title: 'Unable to Load Ledger',
+        message: 'Failed to load ledger',
+        confirmLabel: 'OK',
+        variant: 'danger',
+        onConfirm: () => setDialogState(null),
+        onCancel: () => setDialogState(null),
+      });
     } finally {
       setLoading(false);
     }
@@ -159,11 +186,75 @@ export function ActiveLedgerView({ customerId, onBack }: Props) {
     return undefined;
   };
 
-  const handleFileCase = () => {
+  const handleFileCase = async () => {
     const balance = ledgerData?.customer?.totalBalance ?? 0;
     const caseInfo = `CUSTOMER CASE INFORMATION\n-------------------------\nName: ${ledgerData?.customer?.name}\nPhone: ${ledgerData?.customer?.phone}\nCNIC: ${ledgerData?.customer?.cnic || 'Not Provided'}\nAddress: ${ledgerData?.customer?.address || 'Not Provided'}\n\nTotal Balance: Rs. ${Math.abs(balance)} ${balance < 0 ? '(Advance)' : '(Debt)'}\n\nPlease proceed with necessary actions.`;
-    navigator.clipboard.writeText(caseInfo);
-    alert('Customer information copied to clipboard for filing a case.');
+    try {
+      await navigator.clipboard.writeText(caseInfo);
+      setDialogState({
+        title: 'Details Copied',
+        message: 'Customer information copied to clipboard for filing a case.',
+        confirmLabel: 'OK',
+        variant: 'primary',
+        onConfirm: () => setDialogState(null),
+        onCancel: () => setDialogState(null),
+      });
+    } catch {
+      setDialogState({
+        title: 'Copy Failed',
+        message: 'Unable to copy customer information. Please try again.',
+        confirmLabel: 'OK',
+        variant: 'danger',
+        onConfirm: () => setDialogState(null),
+        onCancel: () => setDialogState(null),
+      });
+    }
+  };
+
+  const executeDeleteCustomer = async (acknowledgeNonZeroBalance: boolean) => {
+    setDialogState(null);
+    setIsDeleting(true);
+
+    try {
+      const result = await deleteCustomer(customerId, acknowledgeNonZeroBalance);
+      if (!result.ok) {
+        setDialogState({
+          title: 'Delete Failed',
+          message: result.error,
+          confirmLabel: 'OK',
+          variant: 'danger',
+          onConfirm: () => setDialogState(null),
+          onCancel: () => setDialogState(null),
+        });
+        return;
+      }
+
+      setDialogState({
+        title: 'Customer Deleted',
+        message: 'Customer and related transactions were deleted successfully.',
+        confirmLabel: 'OK',
+        variant: 'primary',
+        onConfirm: () => {
+          setDialogState(null);
+          onBack();
+        },
+        onCancel: () => {
+          setDialogState(null);
+          onBack();
+        },
+      });
+    } catch {
+      setDialogState({
+        title: 'Delete Failed',
+        message: 'Failed to delete customer.',
+        confirmLabel: 'OK',
+        variant: 'danger',
+        onConfirm: () => setDialogState(null),
+        onCancel: () => setDialogState(null),
+      });
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const handleDeleteCustomer = async () => {
@@ -178,25 +269,18 @@ export function ActiveLedgerView({ customerId, onBack }: Props) {
         ? `Customer ${ledgerData.customer.name} has advance of Rs. ${amount}. Confirm that you have already paid this amount to the customer and want to delete all records.`
         : `Delete ${ledgerData.customer.name} and all related transactions permanently?`;
 
-    const confirmed = window.confirm(confirmationMessage);
-    if (!confirmed) return;
-
-    setIsDeleting(true);
-
-    try {
-      const result = await deleteCustomer(customerId, normalizedBalance !== 0);
-      if (!result.ok) {
-        alert(result.error);
-        return;
-      }
-
-      alert('Customer deleted successfully.');
-      onBack();
-    } catch {
-      alert('Failed to delete customer.');
-    } finally {
-      setIsDeleting(false);
-    }
+    setDialogState({
+      title: 'Confirm Deletion',
+      message: confirmationMessage,
+      confirmLabel: 'Yes, Delete',
+      cancelLabel: 'Cancel',
+      showCancel: true,
+      variant: 'danger',
+      onConfirm: () => {
+        void executeDeleteCustomer(normalizedBalance !== 0);
+      },
+      onCancel: () => setDialogState(null),
+    });
   };
 
   if (loading) return <Spinner />;
@@ -329,6 +413,18 @@ export function ActiveLedgerView({ customerId, onBack }: Props) {
           }}
         />
       )}
+
+      <ModalDialog
+        open={!!dialogState}
+        title={dialogState?.title ?? ''}
+        message={dialogState?.message ?? ''}
+        confirmLabel={dialogState?.confirmLabel}
+        cancelLabel={dialogState?.cancelLabel}
+        showCancel={dialogState?.showCancel}
+        variant={dialogState?.variant}
+        onConfirm={() => dialogState?.onConfirm()}
+        onCancel={() => dialogState?.onCancel()}
+      />
     </article>
   );
 }
