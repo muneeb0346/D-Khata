@@ -11,6 +11,7 @@ interface CustomerListProps {
 
 export const CustomerList = React.memo(function CustomerList({ customers, isLoading, onSelectCustomer }: CustomerListProps) {
   const [searchTerm, setSearchTerm] = useState('');
+  const [balanceFilter, setBalanceFilter] = useState<'debt' | 'advance' | null>(null);
 
   const totals = useMemo(() => {
     return customers.reduce(
@@ -30,31 +31,66 @@ export const CustomerList = React.memo(function CustomerList({ customers, isLoad
   }, [customers]);
 
   const filteredCustomers = useMemo(() => {
-    if (!searchTerm.trim()) return customers;
-    const lower = searchTerm.toLowerCase();
-    return customers.filter(c =>
-      (c.name && c.name.toLowerCase().includes(lower)) ||
-      (c.phone && c.phone.includes(searchTerm)) ||
-      (c.cnic && c.cnic.includes(searchTerm))
-    );
-  }, [customers, searchTerm]);
+    const searchFiltered = !searchTerm.trim()
+      ? customers
+      : customers.filter(c => {
+        const lower = searchTerm.toLowerCase();
+        return (
+          (c.name && c.name.toLowerCase().includes(lower)) ||
+          (c.phone && c.phone.includes(searchTerm)) ||
+          (c.cnic && c.cnic.includes(searchTerm))
+        );
+      });
+
+    if (!balanceFilter) return searchFiltered;
+
+    if (balanceFilter === 'debt') {
+      return searchFiltered.filter((c) => (c.totalBalance ?? 0) > 0);
+    }
+
+    return searchFiltered.filter((c) => (c.totalBalance ?? 0) <= 0);
+  }, [balanceFilter, customers, searchTerm]);
+
+  const handleFilterToggle = (filter: 'debt' | 'advance') => {
+    setBalanceFilter((current) => (current === filter ? null : filter));
+  };
+
+  const hasAnyCustomers = customers.length > 0;
+
+  const emptyMessage = !hasAnyCustomers
+    ? 'No customers yet. Add one to get started!'
+    : balanceFilter
+      ? `No ${balanceFilter} customers match your search.`
+      : 'No customers match your search.';
 
   return (
     <section className={styles.listContainer} aria-label="Customer list" aria-live="polite">
       <h2 className={styles.title}>Your Customers</h2>
 
       <section className={styles.summary} aria-label="Customer balance summary">
-        <div className={`${styles.summaryCard} ${styles.debtCard}`}>
+        <button
+          type="button"
+          className={`${styles.summaryCard} ${styles.debtCard} ${balanceFilter === 'debt' ? styles.summaryCardActive : ''}`}
+          onClick={() => handleFilterToggle('debt')}
+          aria-pressed={balanceFilter === 'debt'}
+          aria-label="Filter customers with outstanding debt"
+        >
           <span className={styles.summaryLabel}>Total Debt</span>
           <strong className={`${styles.summaryValue} ${styles.debt}`}>Rs. {totals.debt}</strong>
-        </div>
-        <div className={`${styles.summaryCard} ${styles.advanceCard}`}>
+        </button>
+        <button
+          type="button"
+          className={`${styles.summaryCard} ${styles.advanceCard} ${balanceFilter === 'advance' ? styles.summaryCardActive : ''}`}
+          onClick={() => handleFilterToggle('advance')}
+          aria-pressed={balanceFilter === 'advance'}
+          aria-label="Filter customers with advance or settled balance"
+        >
           <span className={styles.summaryLabel}>Total Advance</span>
           <strong className={`${styles.summaryValue} ${styles.advance}`}>Rs. {totals.advance}</strong>
-        </div>
+        </button>
       </section>
 
-      {customers.length > 0 && (
+      {hasAnyCustomers && (
         <search>
           <label htmlFor="customer-search" className="sr-only">Search customers</label>
           <input
@@ -73,7 +109,7 @@ export const CustomerList = React.memo(function CustomerList({ customers, isLoad
         <Spinner />
       ) : filteredCustomers.length === 0 ? (
         <p className={styles.empty}>
-          {customers.length === 0 ? "No customers yet. Add one to get started!" : "No customers match your search."}
+          {emptyMessage}
         </p>
       ) : (
         <ul className={styles.list} role="list">

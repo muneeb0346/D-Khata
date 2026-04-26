@@ -26,6 +26,20 @@
   border: var(--border-width-sm) solid var(--color-border);
   background: var(--color-surface);
   box-shadow: var(--shadow-sm);
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.summaryCard:focus-visible {
+  outline: var(--border-width-sm) solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.summaryCardActive {
+  box-shadow: var(--shadow-md);
+  background: var(--color-bg-subtle);
 }
 
 .debtCard {
