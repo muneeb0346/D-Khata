@@ -22,6 +22,7 @@ type PaymentActionResult = {
   newBalance: number;
   surplus: number;
 } | ActionFailure;
+type DeleteCustomerActionResult = { ok: true } | ActionFailure;
 
 function getTxDateValue(txn: Transaction) {
   return new Date(txn.date).getTime();
@@ -488,6 +489,43 @@ export async function processPayment(customerId: string, amount: number): Promis
     });
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : 'Failed to process payment.' };
+  }
+}
+
+export async function deleteCustomer(customerId: string, acknowledgeNonZeroBalance = false): Promise<DeleteCustomerActionResult> {
+  try {
+    return await db.transaction(async (tx) => {
+      const customer = await tx.query.customers.findFirst({
+        where: eq(customers.id, customerId),
+      });
+
+      if (!customer) {
+        return { ok: false, error: 'Customer not found' };
+      }
+
+      const customerTransactions = await tx
+        .select()
+        .from(transactions)
+        .where(eq(transactions.customerId, customerId))
+        .orderBy(asc(transactions.date));
+
+      const normalizedBalance = reconcileLedger(customer, customerTransactions).customer.totalBalance ?? 0;
+
+      if (normalizedBalance !== 0 && !acknowledgeNonZeroBalance) {
+        const pendingAction = normalizedBalance > 0 ? 'received debt' : 'paid advance';
+        return {
+          ok: false,
+          error: `Customer has a non-zero balance. Confirm you have already ${pendingAction} before deleting.`,
+        };
+      }
+
+      await tx.delete(transactions).where(eq(transactions.customerId, customerId));
+      await tx.delete(customers).where(eq(customers.id, customerId));
+
+      return { ok: true };
+    });
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : 'Failed to delete customer.' };
   }
 }
 

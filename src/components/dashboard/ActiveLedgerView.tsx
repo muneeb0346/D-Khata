@@ -5,7 +5,7 @@ import { ReceivePayForm } from '@/components/dashboard/ReceivePayForm';
 import { CustomerForm } from '@/components/dashboard/NewCustomerForm';
 import { Spinner } from '@/components/ui/Spinner';
 import styles from './ActiveLedgerView.module.css';
-import { getLedger, addPendingCredit, processPayment } from '@/server/actions';
+import { getLedger, addPendingCredit, processPayment, deleteCustomer } from '@/server/actions';
 import { TransactionList } from '@/components/khata/TransactionList';
 import balanceStyles from '@/components/khata/BalanceSummary.module.css';
 import { BalanceGraph } from '@/components/charts/BalanceGraph';
@@ -21,6 +21,7 @@ export function ActiveLedgerView({ customerId, onBack }: Props) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeForm, setActiveForm] = useState<'credit' | 'pay' | 'edit' | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchLedger = useCallback(async ({ showLoading = true }: { showLoading?: boolean } = {}) => {
     if (showLoading) {
@@ -129,6 +130,39 @@ export function ActiveLedgerView({ customerId, onBack }: Props) {
     alert('Customer information copied to clipboard for filing a case.');
   };
 
+  const handleDeleteCustomer = async () => {
+    if (!ledgerData?.customer) return;
+
+    const normalizedBalance = Number(ledgerData.customer.totalBalance ?? 0);
+    const amount = Math.abs(normalizedBalance);
+
+    const confirmationMessage = normalizedBalance > 0
+      ? `Customer ${ledgerData.customer.name} has debt of Rs. ${amount}. Confirm that you have already received this amount and want to delete all records for this customer.`
+      : normalizedBalance < 0
+        ? `Customer ${ledgerData.customer.name} has advance of Rs. ${amount}. Confirm that you have already paid this amount to the customer and want to delete all records.`
+        : `Delete ${ledgerData.customer.name} and all related transactions permanently?`;
+
+    const confirmed = window.confirm(confirmationMessage);
+    if (!confirmed) return;
+
+    setIsDeleting(true);
+
+    try {
+      const result = await deleteCustomer(customerId, normalizedBalance !== 0);
+      if (!result.ok) {
+        alert(result.error);
+        return;
+      }
+
+      alert('Customer deleted successfully.');
+      onBack();
+    } catch {
+      alert('Failed to delete customer.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   if (loading) return <Spinner />;
 
   if (error && !ledgerData) {
@@ -205,6 +239,20 @@ export function ActiveLedgerView({ customerId, onBack }: Props) {
               <Button variant="secondary" onClick={handleFileCase} aria-label="Copy customer details to clipboard for filing a case">Copy Details to File Case</Button>
             </div>
           </dl>
+          <section className={styles.deleteCustomerSection} aria-label="Danger zone">
+            <h4 className={styles.deleteTitle}>Danger Zone</h4>
+            <p className={styles.deleteText}>
+              Deleting this customer permanently removes all transactions and cannot be undone.
+            </p>
+            <Button
+              variant="danger"
+              onClick={handleDeleteCustomer}
+              disabled={isDeleting}
+              aria-label="Delete this customer and all related transactions"
+            >
+              {isDeleting ? 'Deleting...' : 'Delete Customer'}
+            </Button>
+          </section>
         </section>
       </section>
 

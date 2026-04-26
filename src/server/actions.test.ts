@@ -6,6 +6,7 @@ import {
   addPendingCredit,
   resolveTransaction,
   processPayment,
+  deleteCustomer,
 } from './actions';
 import { db } from '@/server/db';
 
@@ -24,6 +25,7 @@ vi.mock('@/server/db', () => {
       then: function (resolve: (val: unknown[]) => void) { resolve([]); }
     };
   });
+  const whereDeleteMock = vi.fn().mockResolvedValue([]);
 
   const setMock = vi.fn().mockReturnValue({
     where: whereMock,
@@ -41,6 +43,10 @@ vi.mock('@/server/db', () => {
     where: whereSelectMock,
   });
 
+  const deleteMock = vi.fn().mockReturnValue({
+    where: whereDeleteMock,
+  });
+
   const queryMock = {
     customers: { findFirst: vi.fn() },
     transactions: { findFirst: vi.fn() },
@@ -51,6 +57,7 @@ vi.mock('@/server/db', () => {
     insert: vi.fn().mockReturnValue({ values: valuesMock }),
     update: vi.fn().mockReturnValue({ set: setMock }),
     select: vi.fn().mockReturnValue({ from: fromMock }),
+    delete: deleteMock,
   };
 
   return {
@@ -59,16 +66,19 @@ vi.mock('@/server/db', () => {
       insert: vi.fn().mockReturnValue({ values: valuesMock }),
       update: vi.fn().mockReturnValue({ set: setMock }),
       select: vi.fn().mockReturnValue({ from: fromMock }),
+      delete: deleteMock,
       transaction: vi.fn(async (cb) => cb(txMock)),
       _mocks: {
         queryMock,
         returningMock,
         whereMock,
+        whereDeleteMock,
         setMock,
         valuesMock,
         orderByMock,
         whereSelectMock,
         fromMock,
+        deleteMock,
         txMock,
       }
     },
@@ -85,17 +95,20 @@ interface TxMocks {
   insert: Mock;
   update: Mock;
   select: Mock;
+  delete: Mock;
 }
 
 interface DBMocks {
   queryMock: QueryMocks;
   returningMock: Mock;
   whereMock: Mock;
+  whereDeleteMock: Mock;
   setMock: Mock;
   valuesMock: Mock;
   orderByMock: Mock;
   whereSelectMock: Mock;
   fromMock: Mock;
+  deleteMock: Mock;
   txMock: TxMocks;
 }
 
@@ -108,6 +121,8 @@ describe('Server Actions', () => {
     mocks.queryMock.transactions.findFirst.mockReset();
     mocks.returningMock.mockReset();
     mocks.orderByMock.mockReset();
+    mocks.whereDeleteMock.mockClear();
+    mocks.deleteMock.mockImplementation(() => ({ where: mocks.whereDeleteMock }));
   });
 
   describe('createCustomer', () => {
@@ -501,6 +516,73 @@ describe('Server Actions', () => {
       expect(mocks.setMock).toHaveBeenCalledWith({ totalBalance: -50 });
 
       expect(result).toEqual({ ok: true, paymentTransaction: paymentTxn, newBalance: -50, surplus: 50 });
+    });
+  });
+
+  describe('deleteCustomer', () => {
+    it('returns an error when customer does not exist', async () => {
+      mocks.queryMock.customers.findFirst.mockResolvedValueOnce(null);
+
+      await expect(deleteCustomer('missing')).resolves.toEqual({ ok: false, error: 'Customer not found' });
+    });
+
+    it('requires explicit acknowledgment when customer has non-zero debt', async () => {
+      mocks.queryMock.customers.findFirst.mockResolvedValueOnce({ id: 'c1', totalBalance: 100 });
+      mocks.orderByMock.mockResolvedValueOnce([
+        {
+          id: 't1',
+          customerId: 'c1',
+          date: new Date('2026-04-25T08:00:00.000Z'),
+          description: 'Milk',
+          originalAmount: 100,
+          remainingBalance: 100,
+          type: 'CREDIT',
+          approval: 'VERIFIED',
+          settlement: 'UNPAID',
+        },
+      ]);
+
+      const result = await deleteCustomer('c1');
+
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+
+      expect(result.error).toContain('Confirm you have already received debt before deleting');
+      expect(mocks.txMock.delete).not.toHaveBeenCalled();
+    });
+
+    it('deletes customer with non-zero balance when acknowledgment is provided', async () => {
+      mocks.queryMock.customers.findFirst.mockResolvedValueOnce({ id: 'c1', totalBalance: 50 });
+      mocks.orderByMock.mockResolvedValueOnce([
+        {
+          id: 't1',
+          customerId: 'c1',
+          date: new Date('2026-04-25T08:00:00.000Z'),
+          description: 'Milk',
+          originalAmount: 50,
+          remainingBalance: 50,
+          type: 'CREDIT',
+          approval: 'VERIFIED',
+          settlement: 'UNPAID',
+        },
+      ]);
+
+      const result = await deleteCustomer('c1', true);
+
+      expect(result).toEqual({ ok: true });
+      expect(mocks.txMock.delete).toHaveBeenCalledTimes(2);
+      expect(mocks.whereDeleteMock).toHaveBeenCalledTimes(2);
+    });
+
+    it('deletes transactions and customer when balance is zero', async () => {
+      mocks.queryMock.customers.findFirst.mockResolvedValueOnce({ id: 'c1', totalBalance: 0 });
+      mocks.orderByMock.mockResolvedValueOnce([]);
+
+      const result = await deleteCustomer('c1');
+
+      expect(result).toEqual({ ok: true });
+      expect(mocks.txMock.delete).toHaveBeenCalledTimes(2);
+      expect(mocks.whereDeleteMock).toHaveBeenCalledTimes(2);
     });
   });
 });

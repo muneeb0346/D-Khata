@@ -27,3 +27,24 @@
 .editBtn {
   width: auto;
 }
+
+.deleteCustomerSection {
+  margin-top: var(--spacing-lg);
+  border: var(--border-width-sm) solid var(--color-danger);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-danger) 8%, var(--color-surface));
+  padding: var(--spacing-md);
+}
+
+.deleteTitle {
+  margin: 0;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-danger);
+}
+
+.deleteText {
+  margin: var(--spacing-xs) 0 var(--spacing-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-main);
+}
