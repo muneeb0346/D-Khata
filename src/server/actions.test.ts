@@ -206,8 +206,28 @@ describe('Server Actions', () => {
   describe('getLedger', () => {
     it('returns customer, transactions, and pending transaction', async () => {
       const customer = { id: 'c1', name: 'Ali', phone: '03001234567', totalBalance: 100 };
-      const txns = [{ id: 't1', remainingBalance: 100 }];
-      const pending = { id: 't2', approval: 'PENDING' };
+      const txns = [{
+        id: 't1',
+        customerId: 'c1',
+        date: new Date('2026-04-25T08:00:00.000Z'),
+        description: 'Milk',
+        originalAmount: 100,
+        remainingBalance: 100,
+        type: 'CREDIT',
+        approval: 'VERIFIED',
+        settlement: 'UNPAID',
+      }];
+      const pending = {
+        id: 't2',
+        customerId: 'c1',
+        date: new Date('2026-04-25T09:00:00.000Z'),
+        description: 'Bread',
+        originalAmount: 50,
+        remainingBalance: 50,
+        type: 'CREDIT',
+        approval: 'PENDING',
+        settlement: 'UNPAID',
+      };
 
       mocks.queryMock.customers.findFirst.mockResolvedValueOnce(customer);
       mocks.orderByMock.mockResolvedValueOnce(txns);
@@ -220,7 +240,17 @@ describe('Server Actions', () => {
 
     it('returns null pendingTransaction when none exists', async () => {
       const customer = { id: 'c1', name: 'Ali', phone: '03001234567', totalBalance: 100 };
-      const txns = [{ id: 't1', remainingBalance: 100 }];
+      const txns = [{
+        id: 't1',
+        customerId: 'c1',
+        date: new Date('2026-04-25T08:00:00.000Z'),
+        description: 'Milk',
+        originalAmount: 100,
+        remainingBalance: 100,
+        type: 'CREDIT',
+        approval: 'VERIFIED',
+        settlement: 'UNPAID',
+      }];
 
       mocks.queryMock.customers.findFirst.mockResolvedValueOnce(customer);
       mocks.orderByMock.mockResolvedValueOnce(txns);
@@ -235,6 +265,86 @@ describe('Server Actions', () => {
       mocks.queryMock.customers.findFirst.mockResolvedValueOnce(null);
 
       await expect(getLedger('missing-customer')).resolves.toEqual({ ok: false, error: 'Customer not found' });
+    });
+
+    it('reconciles stale credit statuses so debt matches outstanding credits', async () => {
+      const customer = { id: 'c1', name: 'Abdul Moiz', phone: '03264165918', totalBalance: 375 };
+      const txns = [
+        {
+          id: 'c1-credit',
+          customerId: 'c1',
+          date: new Date('2026-04-25T20:26:00.000Z'),
+          description: '1 Dozen Eggs',
+          originalAmount: 305,
+          remainingBalance: 0,
+          type: 'CREDIT',
+          approval: 'VERIFIED',
+          settlement: 'SETTLED',
+        },
+        {
+          id: 'pay-1',
+          customerId: 'c1',
+          date: new Date('2026-04-25T20:26:30.000Z'),
+          description: 'Payment received',
+          originalAmount: 500,
+          remainingBalance: 0,
+          type: 'PAYMENT',
+          approval: 'VERIFIED',
+          settlement: 'SETTLED',
+        },
+        {
+          id: 'c2-credit',
+          customerId: 'c1',
+          date: new Date('2026-04-25T20:27:00.000Z'),
+          description: 'Some Snacks',
+          originalAmount: 120,
+          remainingBalance: 0,
+          type: 'CREDIT',
+          approval: 'VERIFIED',
+          settlement: 'SETTLED',
+        },
+        {
+          id: 'c3-credit',
+          customerId: 'c1',
+          date: new Date('2026-04-25T21:40:00.000Z'),
+          description: '2 Chocolates',
+          originalAmount: 200,
+          remainingBalance: 0,
+          type: 'CREDIT',
+          approval: 'VERIFIED',
+          settlement: 'SETTLED',
+        },
+        {
+          id: 'c4-credit',
+          customerId: 'c1',
+          date: new Date('2026-04-25T23:16:00.000Z'),
+          description: '5 Lays',
+          originalAmount: 250,
+          remainingBalance: 70,
+          type: 'CREDIT',
+          approval: 'VERIFIED',
+          settlement: 'PARTIAL',
+        },
+      ];
+
+      mocks.queryMock.customers.findFirst.mockResolvedValueOnce(customer);
+      mocks.orderByMock.mockResolvedValueOnce(txns);
+      mocks.queryMock.transactions.findFirst.mockResolvedValueOnce(undefined);
+
+      const result = await getLedger('c1');
+
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+
+      expect(result.ledgerData.customer.totalBalance).toBe(375);
+
+      const c3 = result.ledgerData.transactions.find((txn) => txn.id === 'c3-credit');
+      const c4 = result.ledgerData.transactions.find((txn) => txn.id === 'c4-credit');
+
+      expect(c3?.remainingBalance).toBe(125);
+      expect(c3?.settlement).toBe('PARTIAL');
+      expect(c4?.remainingBalance).toBe(250);
+      expect(c4?.settlement).toBe('UNPAID');
     });
   });
 

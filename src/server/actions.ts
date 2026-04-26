@@ -23,6 +23,88 @@ type PaymentActionResult = {
   surplus: number;
 } | ActionFailure;
 
+function getTxDateValue(txn: Transaction) {
+  return new Date(txn.date).getTime();
+}
+
+function getDerivedSettlement(originalAmount: number, remainingBalance: number): 'UNPAID' | 'PARTIAL' | 'SETTLED' {
+  if (remainingBalance <= 0) return 'SETTLED';
+  if (remainingBalance < originalAmount) return 'PARTIAL';
+  return 'UNPAID';
+}
+
+function reconcileLedger(customer: Customer, txns: Transaction[]): { customer: Customer; transactions: Transaction[] } {
+  const ordered = [...txns].sort((a, b) => getTxDateValue(a) - getTxDateValue(b));
+  const remainingByCreditId = new Map<string, number>();
+  const creditQueue: string[] = [];
+  let carriedAdvance = 0;
+
+  let creditsTotal = 0;
+  let paymentsTotal = 0;
+
+  for (const txn of ordered) {
+    if (txn.type === 'CREDIT' && txn.approval !== 'DISPUTED') {
+      creditsTotal += txn.originalAmount;
+
+      const consumedByAdvance = Math.min(carriedAdvance, txn.originalAmount);
+      const nextRemaining = txn.originalAmount - consumedByAdvance;
+
+      carriedAdvance -= consumedByAdvance;
+      remainingByCreditId.set(txn.id, nextRemaining);
+
+      if (nextRemaining > 0) {
+        creditQueue.push(txn.id);
+      }
+
+      continue;
+    }
+
+    if (txn.type === 'PAYMENT' && txn.approval === 'VERIFIED') {
+      paymentsTotal += txn.originalAmount;
+      let paymentLeft = txn.originalAmount;
+
+      while (paymentLeft > 0 && creditQueue.length > 0) {
+        const creditId = creditQueue[0];
+        const creditRemaining = remainingByCreditId.get(creditId) ?? 0;
+
+        if (paymentLeft >= creditRemaining) {
+          paymentLeft -= creditRemaining;
+          remainingByCreditId.set(creditId, 0);
+          creditQueue.shift();
+          continue;
+        }
+
+        remainingByCreditId.set(creditId, creditRemaining - paymentLeft);
+        paymentLeft = 0;
+      }
+
+      if (paymentLeft > 0) {
+        carriedAdvance += paymentLeft;
+      }
+    }
+  }
+
+  const reconciledTransactions = ordered.map((txn) => {
+    if (txn.type !== 'CREDIT' || txn.approval === 'DISPUTED') {
+      return txn;
+    }
+
+    const remainingBalance = remainingByCreditId.get(txn.id) ?? 0;
+    return {
+      ...txn,
+      remainingBalance,
+      settlement: getDerivedSettlement(txn.originalAmount, remainingBalance),
+    };
+  });
+
+  const normalizedBalance = creditsTotal - paymentsTotal;
+
+  return {
+    customer: { ...customer, totalBalance: normalizedBalance },
+    transactions: reconciledTransactions,
+  };
+}
+
 function hasValidPhone(phone: string) {
   const digitsOnly = phone.replace(/\D/g, '');
   return digitsOnly.length >= 10 && digitsOnly.length <= 11;
@@ -149,7 +231,19 @@ export async function getLedger(customerId: string): Promise<LedgerActionResult>
       ),
     }) ?? null;
 
-    return { ok: true, ledgerData: { customer, transactions: txns, pendingTransaction } };
+    const reconciled = reconcileLedger(customer, txns);
+    const reconciledPendingTransaction = pendingTransaction
+      ? reconciled.transactions.find((txn) => txn.id === pendingTransaction.id) ?? pendingTransaction
+      : null;
+
+    return {
+      ok: true,
+      ledgerData: {
+        customer: reconciled.customer,
+        transactions: reconciled.transactions,
+        pendingTransaction: reconciledPendingTransaction,
+      },
+    };
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : 'Failed to load ledger.' };
   }
