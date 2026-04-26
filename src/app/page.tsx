@@ -8,11 +8,22 @@ import { Button } from '@/components/ui/Button';
 import { getCustomers } from '@/server/actions';
 import { Customer } from '@/types';
 
+const DASHBOARD_CUSTOMER_KEY = 'd-khata.dashboard.customerId';
+
 export default function Dashboard() {
-  const [view, setView] = useState<'list' | 'new' | 'ledger'>('list');
-  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
+  const [view, setView] = useState<'list' | 'new' | 'ledger'>(() => {
+    if (typeof window === 'undefined') return 'list';
+
+    return window.localStorage.getItem(DASHBOARD_CUSTOMER_KEY) ? 'ledger' : 'list';
+  });
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null;
+
+    return window.localStorage.getItem(DASHBOARD_CUSTOMER_KEY);
+  });
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
 
   const fetchAllCustomers = async () => {
     setIsLoading(true);
@@ -26,16 +37,51 @@ export default function Dashboard() {
     }
   };
 
-  useEffect(() => {
-    if (view === 'list') {
-      fetchAllCustomers();
-    }
-  }, [view]);
-
   const handleSelectCustomer = useCallback((id: string) => {
     setSelectedCustomerId(id);
     setView('ledger');
   }, []);
+
+  const handleBackToList = useCallback(() => {
+    setView('list');
+    setSelectedCustomerId(null);
+  }, []);
+
+  useEffect(() => {
+    const timerId = window.setTimeout(() => {
+      setIsMounted(true);
+    }, 0);
+
+    if (view === 'list') {
+      const fetchTimerId = window.setTimeout(() => {
+        void fetchAllCustomers();
+      }, 0);
+
+      return () => {
+        window.clearTimeout(timerId);
+        window.clearTimeout(fetchTimerId);
+      };
+    }
+
+    return () => window.clearTimeout(timerId);
+  }, [view]);
+
+  useEffect(() => {
+    if (view === 'ledger' && selectedCustomerId) {
+      window.localStorage.setItem(DASHBOARD_CUSTOMER_KEY, selectedCustomerId);
+      return;
+    }
+
+    window.localStorage.removeItem(DASHBOARD_CUSTOMER_KEY);
+  }, [selectedCustomerId, view]);
+
+  if (!isMounted) {
+    return (
+      <main className="flex-col w-full h-full layout-container" aria-busy="true" aria-live="polite">
+        <h1 className="sr-only">D-Khata Merchant Dashboard</h1>
+      </main>
+    );
+  }
 
   return (
     <main className="flex-col w-full h-full layout-container">
@@ -59,15 +105,15 @@ export default function Dashboard() {
 
       {view === 'new' && (
         <CustomerForm
-          onCancel={() => setView('list')}
-          onSuccess={() => setView('list')}
+          onCancel={handleBackToList}
+          onSuccess={handleBackToList}
         />
       )}
 
       {view === 'ledger' && selectedCustomerId && (
         <ActiveLedgerView
           customerId={selectedCustomerId}
-          onBack={() => setView('list')}
+          onBack={handleBackToList}
         />
       )}
 
