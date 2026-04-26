@@ -7,6 +7,7 @@ import { TransactionList } from '@/components/khata/TransactionList';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import styles from './page.module.css';
+import balanceStyles from '@/components/khata/BalanceSummary.module.css';
 import { useParams } from 'next/navigation';
 import { LedgerData } from '@/types';
 
@@ -95,9 +96,9 @@ export default function PublicKhata() {
       </header>
 
       <section className="txns-container p-md" aria-label="Ledger overview">
-        <div className={styles.balanceHeader}>
+        <div className={balanceStyles.balanceHeader}>
           <span className="text-muted">Current Balance</span>
-          <h2 className={`${styles.balanceAmount} ${Number(customer.totalBalance ?? 0) < 0 ? 'text-advance' : (Number(customer.totalBalance ?? 0) > 0 ? 'text-debt' : '')}`}>
+          <h2 className={`${balanceStyles.balanceAmount} ${Number(customer.totalBalance ?? 0) < 0 ? 'text-advance' : (Number(customer.totalBalance ?? 0) > 0 ? 'text-debt' : '')}`}>
             Rs. {Math.abs(Number(customer.totalBalance ?? 0))} {Number(customer.totalBalance ?? 0) < 0 ? '(Adv)' : (Number(customer.totalBalance ?? 0) > 0 ? '(Debt)' : '')}
           </h2>
         </div>

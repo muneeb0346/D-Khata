@@ -7,6 +7,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import styles from './ActiveLedgerView.module.css';
 import { getLedger, addPendingCredit, processPayment } from '@/server/actions';
 import { TransactionList } from '@/components/khata/TransactionList';
+import balanceStyles from '@/components/khata/BalanceSummary.module.css';
 import { BalanceGraph } from '@/components/charts/BalanceGraph';
 import { LedgerData } from '@/types';
 
@@ -163,11 +164,15 @@ export function ActiveLedgerView({ customerId, onBack }: Props) {
         </div>
         <div className="flex-col">
           <h2 className={styles.name}>{customer.name}</h2>
-          <span className={`${styles.balance} ${Number(customer.totalBalance ?? 0) < 0 ? 'text-advance' : (Number(customer.totalBalance ?? 0) > 0 ? 'text-debt' : '')}`}>
-            Balance: Rs. {Math.abs(Number(customer.totalBalance ?? 0))} {Number(customer.totalBalance ?? 0) < 0 ? '(Adv)' : (Number(customer.totalBalance ?? 0) > 0 ? '(Debt)' : '')}
-          </span>
         </div>
       </header>
+
+      <div className={balanceStyles.balanceHeader}>
+        <span className="text-muted">Current Balance</span>
+        <h2 className={`${balanceStyles.balanceAmount} ${Number(customer.totalBalance ?? 0) < 0 ? 'text-advance' : (Number(customer.totalBalance ?? 0) > 0 ? 'text-debt' : '')}`}>
+          Rs. {Math.abs(Number(customer.totalBalance ?? 0))} {Number(customer.totalBalance ?? 0) < 0 ? '(Adv)' : (Number(customer.totalBalance ?? 0) > 0 ? '(Debt)' : '')}
+        </h2>
+      </div>
 
       <section className="txns-container" aria-label="Transactions">
         {isLocked && (

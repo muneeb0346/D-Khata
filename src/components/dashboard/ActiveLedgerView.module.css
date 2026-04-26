@@ -15,10 +15,6 @@
   font-weight: var(--font-weight-bold);
 }
 
-.balance {
-  font-weight: var(--font-weight-semibold);
-}
-
 .lockedBanner {
   background-color: var(--color-warning);
   color: var(--color-surface);
