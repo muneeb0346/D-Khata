@@ -17,7 +17,7 @@ The core objective was to build a secure, reliable ledger application capable of
 
 ## 🛠️ Tech Stack
 
-*   **Frontend:** Next.js (App Router), React, TypeScript, Tailwind CSS
+*   **Frontend:** Next.js (App Router), React, TypeScript, Modular CSS
 *   **Backend:** Next.js Server Actions, Node.js
 *   **Database:** PostgreSQL (NeonDB), Drizzle ORM
 *   **Testing:** Vitest
