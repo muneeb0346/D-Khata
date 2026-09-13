@@ -5,11 +5,13 @@ import { getLedger, resolveTransaction } from '@/server/actions';
 import { BalanceGraph } from '@/components/charts/BalanceGraph';
 import { TransactionList } from '@/components/khata/TransactionList';
 import { Button } from '@/components/ui/Button';
+import { ModalDialog } from '@/components/ui/ModalDialog';
 import { Spinner } from '@/components/ui/Spinner';
 import styles from './page.module.css';
 import balanceStyles from '@/components/khata/BalanceSummary.module.css';
 import { useParams } from 'next/navigation';
 import { LedgerData } from '@/types';
+import { logger } from '@/utils/logger';
 
 export default function PublicKhata() {
   const params = useParams();
@@ -18,6 +20,7 @@ export default function PublicKhata() {
   const [ledgerData, setLedgerData] = useState<LedgerData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [dialog, setDialog] = useState<{ title: string; message: string; variant?: 'primary' | 'danger'; onConfirm?: () => void } | null>(null);
 
   const fetchLedger = useCallback(async () => {
     setLoading(true);
@@ -27,7 +30,12 @@ export default function PublicKhata() {
       if (!result.ok) {
         setLedgerData(null);
         setError(result.error);
-        alert(result.error);
+        setDialog({
+          title: 'Unable to Load Ledger',
+          message: result.error,
+          variant: 'danger',
+          onConfirm: () => setDialog(null),
+        });
         return;
       }
 
@@ -35,7 +43,13 @@ export default function PublicKhata() {
     } catch {
       setLedgerData(null);
       setError('Failed to load ledger');
-      alert('Failed to load ledger');
+      setDialog({
+        title: 'Unable to Load Ledger',
+        message: 'Failed to load ledger',
+        variant: 'danger',
+        onConfirm: () => setDialog(null),
+      });
+      logger.error('Failed to load ledger', { customerId });
     } finally {
       setLoading(false);
     }
@@ -54,13 +68,24 @@ export default function PublicKhata() {
     try {
       const result = await resolveTransaction(customerId, ledgerData.pendingTransaction.id, resolution);
       if (!result.ok) {
-        alert(result.error);
+        setDialog({
+          title: 'Resolution Failed',
+          message: result.error,
+          variant: 'danger',
+          onConfirm: () => setDialog(null),
+        });
         return;
       }
 
       fetchLedger();
     } catch {
-      alert('Failed to resolve transaction');
+      logger.error('Failed to resolve transaction', { customerId, resolution });
+      setDialog({
+        title: 'Resolution Failed',
+        message: 'Failed to resolve transaction',
+        variant: 'danger',
+        onConfirm: () => setDialog(null),
+      });
     }
   };
 
@@ -131,6 +156,15 @@ export default function PublicKhata() {
           </div>
         </aside>
       )}
+
+      <ModalDialog
+        open={!!dialog}
+        title={dialog?.title ?? ''}
+        message={dialog?.message ?? ''}
+        variant={dialog?.variant ?? 'primary'}
+        onConfirm={dialog?.onConfirm ?? (() => setDialog(null))}
+        onCancel={() => setDialog(null)}
+      />
     </main>
   );
 }

@@ -7,6 +7,7 @@ import { ActiveLedgerView } from '@/components/dashboard/ActiveLedgerView';
 import { Button } from '@/components/ui/Button';
 import { getCustomers } from '@/server/actions';
 import { Customer } from '@/types';
+import { logger } from '@/utils/logger';
 
 const DASHBOARD_CUSTOMER_KEY = 'd-khata.dashboard.customerId';
 
@@ -35,7 +36,7 @@ export default function Dashboard() {
       const data = await getCustomers();
       setCustomers(data);
     } catch (e) {
-      console.error(e);
+      logger.error('Failed to fetch customers', { error: e instanceof Error ? e.message : String(e) });
     } finally {
       setIsLoading(false);
     }
