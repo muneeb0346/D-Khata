@@ -80,11 +80,16 @@ To run this project locally, follow these steps:
 ```
 
 3. **Configure Environment Variables:**
-Create a `.env.local` file in the root directory and add your database connection string and any required secrets:
+Copy the example environment file and add your database connection string:
+
+```bash
+   cp .env.example .env.local
+```
+
+Then edit `.env.local` to set your `DATABASE_URL` (PostgreSQL/NeonDB connection string):
 
 ```env
    DATABASE_URL="postgresql://user:password@host/dbname"
-
 ```
 
 4. **Push Database Schemas (Drizzle):**
@@ -108,4 +113,35 @@ Create a `.env.local` file in the root directory and add your database connectio
 
 ```
 
+7. **Run Tests with Coverage:**
+
+```bash
+   npm run test:coverage
+
+```
+
+8. **Run Type Check:**
+
+```bash
+   npm run typecheck
+
+```
+
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+## CI
+
+This project includes a GitHub Actions CI pipeline that runs on every push and pull request. The pipeline executes:
+
+- **Lint**: `npm run lint` (ESLint with Next.js config)
+- **Type Check**: `npx tsc --noEmit` (strict TypeScript check)
+- **Tests**: `npm run test -- --coverage` (Vitest with 70% line coverage threshold)
+- **Dependency Audit**: `npm audit --audit-level=high` (fails on high/critical vulnerabilities)
+
+Check the [Actions tab](https://github.com/muneeb0346/D-Khata/actions) for build status.
+
+## Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `DATABASE_URL` | Yes | PostgreSQL/NeonDB connection string |
