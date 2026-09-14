@@ -1,17 +1,25 @@
-import type { Customer, Transaction } from '@/types';
+import type { Customer, Transaction } from "@/types";
 
-function getTxDateValue(txn: Transaction) {
+export function getTxDateValue(txn: Transaction) {
   return new Date(txn.date).getTime();
 }
 
-function getDerivedSettlement(originalAmount: number, remainingBalance: number): 'UNPAID' | 'PARTIAL' | 'SETTLED' {
-  if (remainingBalance <= 0) return 'SETTLED';
-  if (remainingBalance < originalAmount) return 'PARTIAL';
-  return 'UNPAID';
+export function getDerivedSettlement(
+  originalAmount: number,
+  remainingBalance: number,
+): "UNPAID" | "PARTIAL" | "SETTLED" {
+  if (remainingBalance <= 0) return "SETTLED";
+  if (remainingBalance < originalAmount) return "PARTIAL";
+  return "UNPAID";
 }
 
-export function reconcileLedger(customer: Customer, txns: Transaction[]): { customer: Customer; transactions: Transaction[] } {
-  const ordered = [...txns].sort((a, b) => getTxDateValue(a) - getTxDateValue(b));
+export function reconcileLedger(
+  customer: Customer,
+  txns: Transaction[],
+): { customer: Customer; transactions: Transaction[] } {
+  const ordered = [...txns].sort(
+    (a, b) => getTxDateValue(a) - getTxDateValue(b),
+  );
   const remainingByCreditId = new Map<string, number>();
   const creditQueue: string[] = [];
   let carriedAdvance = 0;
@@ -20,7 +28,7 @@ export function reconcileLedger(customer: Customer, txns: Transaction[]): { cust
   let paymentsTotal = 0;
 
   for (const txn of ordered) {
-    if (txn.type === 'CREDIT' && txn.approval !== 'DISPUTED') {
+    if (txn.type === "CREDIT" && txn.approval !== "DISPUTED") {
       creditsTotal += txn.originalAmount;
 
       const consumedByAdvance = Math.min(carriedAdvance, txn.originalAmount);
@@ -36,7 +44,7 @@ export function reconcileLedger(customer: Customer, txns: Transaction[]): { cust
       continue;
     }
 
-    if (txn.type === 'PAYMENT' && txn.approval === 'VERIFIED') {
+    if (txn.type === "PAYMENT" && txn.approval === "VERIFIED") {
       paymentsTotal += txn.originalAmount;
       let paymentLeft = txn.originalAmount;
 
@@ -62,7 +70,7 @@ export function reconcileLedger(customer: Customer, txns: Transaction[]): { cust
   }
 
   const reconciledTransactions = ordered.map((txn) => {
-    if (txn.type !== 'CREDIT' || txn.approval === 'DISPUTED') {
+    if (txn.type !== "CREDIT" || txn.approval === "DISPUTED") {
       return txn;
     }
 

@@ -1,9 +1,11 @@
-'use server';
+"use server";
 
-import { db } from '@/server/db';
-import { customers, transactions } from '@/server/db/schema';
-import { eq, and, asc, ne } from 'drizzle-orm';
-import type { Customer, LedgerData, Transaction } from '@/types';
+import { db } from "@/server/db";
+import { customers, transactions } from "@/server/db/schema";
+import { eq, and, asc, ne } from "drizzle-orm";
+import type { Customer, LedgerData, Transaction } from "@/types";
+import { validateCustomerData } from "@/server/lib/validation";
+import { reconcileLedger } from "@/server/db/reconcile";
 
 type CustomerPayload = {
   name: string;
@@ -15,125 +17,35 @@ type CustomerPayload = {
 type ActionFailure = { ok: false; error: string };
 type CustomerActionResult = { ok: true; customer: Customer } | ActionFailure;
 type LedgerActionResult = { ok: true; ledgerData: LedgerData } | ActionFailure;
-type TransactionActionResult = { ok: true; transaction: Transaction } | ActionFailure;
-type PaymentActionResult = {
-  ok: true;
-  paymentTransaction: Transaction;
-  newBalance: number;
-  surplus: number;
-} | ActionFailure;
+type TransactionActionResult =
+  | { ok: true; transaction: Transaction }
+  | ActionFailure;
+type PaymentActionResult =
+  | {
+      ok: true;
+      paymentTransaction: Transaction;
+      newBalance: number;
+      surplus: number;
+    }
+  | ActionFailure;
 type DeleteCustomerActionResult = { ok: true } | ActionFailure;
 
-function getTxDateValue(txn: Transaction) {
-  return new Date(txn.date).getTime();
-}
-
-function getDerivedSettlement(originalAmount: number, remainingBalance: number): 'UNPAID' | 'PARTIAL' | 'SETTLED' {
-  if (remainingBalance <= 0) return 'SETTLED';
-  if (remainingBalance < originalAmount) return 'PARTIAL';
-  return 'UNPAID';
-}
-
-function reconcileLedger(customer: Customer, txns: Transaction[]): { customer: Customer; transactions: Transaction[] } {
-  const ordered = [...txns].sort((a, b) => getTxDateValue(a) - getTxDateValue(b));
-  const remainingByCreditId = new Map<string, number>();
-  const creditQueue: string[] = [];
-  let carriedAdvance = 0;
-
-  let creditsTotal = 0;
-  let paymentsTotal = 0;
-
-  for (const txn of ordered) {
-    if (txn.type === 'CREDIT' && txn.approval !== 'DISPUTED') {
-      creditsTotal += txn.originalAmount;
-
-      const consumedByAdvance = Math.min(carriedAdvance, txn.originalAmount);
-      const nextRemaining = txn.originalAmount - consumedByAdvance;
-
-      carriedAdvance -= consumedByAdvance;
-      remainingByCreditId.set(txn.id, nextRemaining);
-
-      if (nextRemaining > 0) {
-        creditQueue.push(txn.id);
-      }
-
-      continue;
-    }
-
-    if (txn.type === 'PAYMENT' && txn.approval === 'VERIFIED') {
-      paymentsTotal += txn.originalAmount;
-      let paymentLeft = txn.originalAmount;
-
-      while (paymentLeft > 0 && creditQueue.length > 0) {
-        const creditId = creditQueue[0];
-        const creditRemaining = remainingByCreditId.get(creditId) ?? 0;
-
-        if (paymentLeft >= creditRemaining) {
-          paymentLeft -= creditRemaining;
-          remainingByCreditId.set(creditId, 0);
-          creditQueue.shift();
-          continue;
-        }
-
-        remainingByCreditId.set(creditId, creditRemaining - paymentLeft);
-        paymentLeft = 0;
-      }
-
-      if (paymentLeft > 0) {
-        carriedAdvance += paymentLeft;
-      }
-    }
-  }
-
-  const reconciledTransactions = ordered.map((txn) => {
-    if (txn.type !== 'CREDIT' || txn.approval === 'DISPUTED') {
-      return txn;
-    }
-
-    const remainingBalance = remainingByCreditId.get(txn.id) ?? 0;
-    return {
-      ...txn,
-      remainingBalance,
-      settlement: getDerivedSettlement(txn.originalAmount, remainingBalance),
-    };
-  });
-
-  const normalizedBalance = creditsTotal - paymentsTotal;
-
-  return {
-    customer: { ...customer, totalBalance: normalizedBalance },
-    transactions: reconciledTransactions,
-  };
-}
-
-function hasValidPhone(phone: string) {
-  const digitsOnly = phone.replace(/\D/g, '');
-  return digitsOnly.length >= 10 && digitsOnly.length <= 11;
-}
-
-function validateCustomerData(customerData: CustomerPayload): ActionFailure | null {
-  if (!customerData.name || /\d/.test(customerData.name)) {
-    return { ok: false, error: 'Name is required.' };
-  }
-
-  if (!hasValidPhone(customerData.phone)) {
-    return { ok: false, error: 'Phone must be 11 digits.' };
-  }
-
-  if (customerData.cnic && !/^\d{5}-\d{7}-\d{1}$/.test(customerData.cnic)) {
-    return { ok: false, error: 'CNIC must follow the format xxxxx-xxxxxxx-x.' };
-  }
-
-  return null;
-}
-
-async function findExistingCustomerByPhoneOrCnic(customerData: CustomerPayload, excludeCustomerId?: string) {
+async function findExistingCustomerByPhoneOrCnic(
+  customerData: CustomerPayload,
+  excludeCustomerId?: string,
+) {
   const phoneWhere = excludeCustomerId
-    ? and(eq(customers.phone, customerData.phone), ne(customers.id, excludeCustomerId))
+    ? and(
+        eq(customers.phone, customerData.phone),
+        ne(customers.id, excludeCustomerId),
+      )
     : eq(customers.phone, customerData.phone);
 
   const cnicWhere = excludeCustomerId
-    ? and(eq(customers.cnic, customerData.cnic as string), ne(customers.id, excludeCustomerId))
+    ? and(
+        eq(customers.cnic, customerData.cnic as string),
+        ne(customers.id, excludeCustomerId),
+      )
     : eq(customers.cnic, customerData.cnic as string);
 
   const existingCustomerByPhone = await db.query.customers.findFirst({
@@ -142,23 +54,32 @@ async function findExistingCustomerByPhoneOrCnic(customerData: CustomerPayload, 
 
   const existingCustomerByCnic = customerData.cnic
     ? await db.query.customers.findFirst({
-      where: cnicWhere,
-    })
+        where: cnicWhere,
+      })
     : null;
 
   return existingCustomerByPhone ?? existingCustomerByCnic;
 }
 
-export async function updateCustomer(customerId: string, customerData: CustomerPayload): Promise<CustomerActionResult> {
+export async function updateCustomer(
+  customerId: string,
+  customerData: CustomerPayload,
+): Promise<CustomerActionResult> {
   const validationError = validateCustomerData(customerData);
   if (validationError) {
     return validationError;
   }
 
-  const existingCustomer = await findExistingCustomerByPhoneOrCnic(customerData, customerId);
+  const existingCustomer = await findExistingCustomerByPhoneOrCnic(
+    customerData,
+    customerId,
+  );
 
   if (existingCustomer) {
-    return { ok: false, error: 'Another customer with this phone number or CNIC already exists.' };
+    return {
+      ok: false,
+      error: "Another customer with this phone number or CNIC already exists.",
+    };
   }
 
   const [updatedCustomer] = await db
@@ -175,16 +96,22 @@ export async function updateCustomer(customerId: string, customerData: CustomerP
   return { ok: true, customer: updatedCustomer };
 }
 
-export async function createCustomer(customerData: CustomerPayload): Promise<CustomerActionResult> {
+export async function createCustomer(
+  customerData: CustomerPayload,
+): Promise<CustomerActionResult> {
   const validationError = validateCustomerData(customerData);
   if (validationError) {
     return validationError;
   }
 
-  const existingCustomer = await findExistingCustomerByPhoneOrCnic(customerData);
+  const existingCustomer =
+    await findExistingCustomerByPhoneOrCnic(customerData);
 
   if (existingCustomer) {
-    return { ok: false, error: 'A customer with this phone number or CNIC already exists.' };
+    return {
+      ok: false,
+      error: "A customer with this phone number or CNIC already exists.",
+    };
   }
 
   const id = crypto.randomUUID();
@@ -203,14 +130,16 @@ export async function createCustomer(customerData: CustomerPayload): Promise<Cus
   return { ok: true, customer: newCustomer };
 }
 
-export async function getLedger(customerId: string): Promise<LedgerActionResult> {
+export async function getLedger(
+  customerId: string,
+): Promise<LedgerActionResult> {
   try {
     const customer = await db.query.customers.findFirst({
       where: eq(customers.id, customerId),
     });
 
     if (!customer) {
-      return { ok: false, error: 'Customer not found' };
+      return { ok: false, error: "Customer not found" };
     }
 
     const txns = await db
@@ -219,16 +148,19 @@ export async function getLedger(customerId: string): Promise<LedgerActionResult>
       .where(eq(transactions.customerId, customerId))
       .orderBy(asc(transactions.date));
 
-    const pendingTransaction = await db.query.transactions.findFirst({
-      where: and(
-        eq(transactions.customerId, customerId),
-        eq(transactions.approval, 'PENDING')
-      ),
-    }) ?? null;
+    const pendingTransaction =
+      (await db.query.transactions.findFirst({
+        where: and(
+          eq(transactions.customerId, customerId),
+          eq(transactions.approval, "PENDING"),
+        ),
+      })) ?? null;
 
     const reconciled = reconcileLedger(customer, txns);
     const reconciledPendingTransaction = pendingTransaction
-      ? reconciled.transactions.find((txn) => txn.id === pendingTransaction.id) ?? pendingTransaction
+      ? (reconciled.transactions.find(
+          (txn) => txn.id === pendingTransaction.id,
+        ) ?? pendingTransaction)
       : null;
 
     return {
@@ -240,13 +172,16 @@ export async function getLedger(customerId: string): Promise<LedgerActionResult>
       },
     };
   } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : 'Failed to load ledger.' };
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "Failed to load ledger.",
+    };
   }
 }
 
 export async function addPendingCredit(
   customerId: string,
-  transactionData: { description: string; amount: number }
+  transactionData: { description: string; amount: number },
 ): Promise<TransactionActionResult> {
   try {
     return await db.transaction(async (tx) => {
@@ -255,35 +190,36 @@ export async function addPendingCredit(
       });
 
       if (!customer) {
-        return { ok: false, error: 'Customer not found' };
+        return { ok: false, error: "Customer not found" };
       }
 
       const existingPending = await tx.query.transactions.findFirst({
         where: and(
           eq(transactions.customerId, customerId),
-          eq(transactions.approval, 'PENDING')
+          eq(transactions.approval, "PENDING"),
         ),
       });
 
       if (existingPending) {
         return {
           ok: false,
-          error: 'Account is locked: a PENDING transaction must be verified before new credit can be added.',
+          error:
+            "Account is locked: a PENDING transaction must be verified before new credit can be added.",
         };
       }
 
       const currentBalance = customer.totalBalance ?? 0;
       let effectiveAmount = transactionData.amount;
-      let settlement: 'UNPAID' | 'PARTIAL' | 'SETTLED' = 'UNPAID';
+      let settlement: "UNPAID" | "PARTIAL" | "SETTLED" = "UNPAID";
 
       if (currentBalance < 0) {
         const advanceAvailable = Math.abs(currentBalance);
 
         if (advanceAvailable >= effectiveAmount) {
-          settlement = 'SETTLED';
+          settlement = "SETTLED";
           effectiveAmount = 0;
         } else {
-          settlement = 'PARTIAL';
+          settlement = "PARTIAL";
           effectiveAmount = effectiveAmount - advanceAvailable;
         }
       }
@@ -298,8 +234,8 @@ export async function addPendingCredit(
           description: transactionData.description,
           originalAmount: transactionData.amount,
           remainingBalance: effectiveAmount,
-          type: 'CREDIT',
-          approval: 'PENDING',
+          type: "CREDIT",
+          approval: "PENDING",
           settlement,
         })
         .returning();
@@ -312,14 +248,17 @@ export async function addPendingCredit(
       return { ok: true, transaction: newTxn };
     });
   } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : 'Failed to add credit.' };
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "Failed to add credit.",
+    };
   }
 }
 
 export async function resolveTransaction(
   customerId: string,
   transactionId: string,
-  resolution: 'VERIFIED' | 'DISPUTED'
+  resolution: "VERIFIED" | "DISPUTED",
 ): Promise<TransactionActionResult> {
   try {
     return await db.transaction(async (tx) => {
@@ -328,48 +267,58 @@ export async function resolveTransaction(
       });
 
       if (!customer) {
-        return { ok: false, error: 'Customer not found' };
+        return { ok: false, error: "Customer not found" };
       }
 
       const txn = await tx.query.transactions.findFirst({
         where: and(
           eq(transactions.id, transactionId),
           eq(transactions.customerId, customerId),
-          eq(transactions.approval, 'PENDING')
+          eq(transactions.approval, "PENDING"),
         ),
       });
 
       if (!txn) {
-        return { ok: false, error: 'No pending transaction found to resolve' };
+        return { ok: false, error: "No pending transaction found to resolve" };
       }
 
-      if (resolution === 'VERIFIED') {
-        const verifiedOpenTxns = await tx
-          .select()
-          .from(transactions)
-          .where(
-            and(
-              eq(transactions.customerId, customerId),
-              eq(transactions.approval, 'VERIFIED'),
-              eq(transactions.type, 'CREDIT')
+      if (resolution === "VERIFIED") {
+        const verifiedOpenTxns =
+          (await tx
+            .select()
+            .from(transactions)
+            .where(
+              and(
+                eq(transactions.customerId, customerId),
+                eq(transactions.approval, "VERIFIED"),
+                eq(transactions.type, "CREDIT"),
+              ),
             )
-          )
-          .orderBy(asc(transactions.date)) ?? [];
+            .orderBy(asc(transactions.date))) ?? [];
 
         const verifiedOpenBalance = verifiedOpenTxns
           .filter((t) => t.remainingBalance > 0)
           .reduce((sum, t) => sum + t.remainingBalance, 0);
 
-        const normalizedRemaining = Math.max(0, (customer.totalBalance ?? 0) - verifiedOpenBalance);
-        const nextRemaining = Math.min(txn.remainingBalance, normalizedRemaining);
-        const nextSettlement = nextRemaining === 0
-          ? 'SETTLED'
-          : (nextRemaining < txn.originalAmount ? 'PARTIAL' : 'UNPAID');
+        const normalizedRemaining = Math.max(
+          0,
+          (customer.totalBalance ?? 0) - verifiedOpenBalance,
+        );
+        const nextRemaining = Math.min(
+          txn.remainingBalance,
+          normalizedRemaining,
+        );
+        const nextSettlement =
+          nextRemaining === 0
+            ? "SETTLED"
+            : nextRemaining < txn.originalAmount
+              ? "PARTIAL"
+              : "UNPAID";
 
         const [updatedTxn] = await tx
           .update(transactions)
           .set({
-            approval: 'VERIFIED',
+            approval: "VERIFIED",
             remainingBalance: nextRemaining,
             settlement: nextSettlement,
           })
@@ -381,7 +330,11 @@ export async function resolveTransaction(
 
       const [updatedTxn] = await tx
         .update(transactions)
-        .set({ approval: 'DISPUTED', settlement: 'SETTLED', remainingBalance: 0 })
+        .set({
+          approval: "DISPUTED",
+          settlement: "SETTLED",
+          remainingBalance: 0,
+        })
         .where(eq(transactions.id, transactionId))
         .returning();
 
@@ -394,13 +347,22 @@ export async function resolveTransaction(
       return { ok: true, transaction: updatedTxn };
     });
   } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : 'Failed to resolve transaction.' };
+    return {
+      ok: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to resolve transaction.",
+    };
   }
 }
 
-export async function processPayment(customerId: string, amount: number): Promise<PaymentActionResult> {
+export async function processPayment(
+  customerId: string,
+  amount: number,
+): Promise<PaymentActionResult> {
   if (amount <= 0) {
-    return { ok: false, error: 'Payment amount must be positive' };
+    return { ok: false, error: "Payment amount must be positive" };
   }
 
   try {
@@ -410,7 +372,7 @@ export async function processPayment(customerId: string, amount: number): Promis
       });
 
       if (!customer) {
-        return { ok: false, error: 'Customer not found' };
+        return { ok: false, error: "Customer not found" };
       }
 
       const outstandingTxns = await tx
@@ -419,9 +381,9 @@ export async function processPayment(customerId: string, amount: number): Promis
         .where(
           and(
             eq(transactions.customerId, customerId),
-            eq(transactions.type, 'CREDIT'),
-            eq(transactions.approval, 'VERIFIED')
-          )
+            eq(transactions.type, "CREDIT"),
+            eq(transactions.approval, "VERIFIED"),
+          ),
         )
         .orderBy(asc(transactions.date));
 
@@ -437,7 +399,7 @@ export async function processPayment(customerId: string, amount: number): Promis
 
           await tx
             .update(transactions)
-            .set({ remainingBalance: 0, settlement: 'SETTLED' })
+            .set({ remainingBalance: 0, settlement: "SETTLED" })
             .where(eq(transactions.id, txn.id));
         } else {
           const newRemaining = txn.remainingBalance - remainingPayment;
@@ -445,7 +407,7 @@ export async function processPayment(customerId: string, amount: number): Promis
 
           await tx
             .update(transactions)
-            .set({ remainingBalance: newRemaining, settlement: 'PARTIAL' })
+            .set({ remainingBalance: newRemaining, settlement: "PARTIAL" })
             .where(eq(transactions.id, txn.id));
         }
       }
@@ -457,12 +419,12 @@ export async function processPayment(customerId: string, amount: number): Promis
         .values({
           id: paymentTxnId,
           customerId,
-          description: 'Payment received',
+          description: "Payment received",
           originalAmount: amount,
           remainingBalance: 0,
-          type: 'PAYMENT',
-          approval: 'VERIFIED',
-          settlement: 'SETTLED',
+          type: "PAYMENT",
+          approval: "VERIFIED",
+          settlement: "SETTLED",
         })
         .returning();
 
@@ -482,11 +444,18 @@ export async function processPayment(customerId: string, amount: number): Promis
       };
     });
   } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : 'Failed to process payment.' };
+    return {
+      ok: false,
+      error:
+        error instanceof Error ? error.message : "Failed to process payment.",
+    };
   }
 }
 
-export async function deleteCustomer(customerId: string, acknowledgeNonZeroBalance = false): Promise<DeleteCustomerActionResult> {
+export async function deleteCustomer(
+  customerId: string,
+  acknowledgeNonZeroBalance = false,
+): Promise<DeleteCustomerActionResult> {
   try {
     return await db.transaction(async (tx) => {
       const customer = await tx.query.customers.findFirst({
@@ -494,7 +463,7 @@ export async function deleteCustomer(customerId: string, acknowledgeNonZeroBalan
       });
 
       if (!customer) {
-        return { ok: false, error: 'Customer not found' };
+        return { ok: false, error: "Customer not found" };
       }
 
       const customerTransactions = await tx
@@ -503,23 +472,32 @@ export async function deleteCustomer(customerId: string, acknowledgeNonZeroBalan
         .where(eq(transactions.customerId, customerId))
         .orderBy(asc(transactions.date));
 
-      const normalizedBalance = reconcileLedger(customer, customerTransactions).customer.totalBalance ?? 0;
+      const normalizedBalance =
+        reconcileLedger(customer, customerTransactions).customer.totalBalance ??
+        0;
 
       if (normalizedBalance !== 0 && !acknowledgeNonZeroBalance) {
-        const pendingAction = normalizedBalance > 0 ? 'received debt' : 'paid advance';
+        const pendingAction =
+          normalizedBalance > 0 ? "received debt" : "paid advance";
         return {
           ok: false,
           error: `Customer has a non-zero balance. Confirm you have already ${pendingAction} before deleting.`,
         };
       }
 
-      await tx.delete(transactions).where(eq(transactions.customerId, customerId));
+      await tx
+        .delete(transactions)
+        .where(eq(transactions.customerId, customerId));
       await tx.delete(customers).where(eq(customers.id, customerId));
 
       return { ok: true };
     });
   } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : 'Failed to delete customer.' };
+    return {
+      ok: false,
+      error:
+        error instanceof Error ? error.message : "Failed to delete customer.",
+    };
   }
 }
 
