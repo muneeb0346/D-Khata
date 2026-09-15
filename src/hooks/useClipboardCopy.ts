@@ -14,7 +14,9 @@ interface DialogState {
   onCancel: () => void;
 }
 
-export function useClipboardCopy(onDialogChange: (state: DialogState | null) => void) {
+export function useClipboardCopy(
+  onDialogChange: (state: DialogState | null) => void,
+) {
   const copyCaseInfo = useCallback(
     async (customer: Customer) => {
       const balance = customer.totalBalance ?? 0;
@@ -24,7 +26,8 @@ export function useClipboardCopy(onDialogChange: (state: DialogState | null) => 
         await navigator.clipboard.writeText(caseInfo);
         onDialogChange({
           title: "Details Copied",
-          message: "Customer information copied to clipboard for filing a case.",
+          message:
+            "Customer information copied to clipboard for filing a case.",
           confirmLabel: "OK",
           variant: "primary",
           onConfirm: () => onDialogChange(null),

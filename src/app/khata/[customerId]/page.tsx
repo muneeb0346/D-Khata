@@ -7,8 +7,9 @@ import { TransactionList } from '@/components/khata/TransactionList';
 import { Button } from '@/components/ui/Button';
 import { ModalDialog } from '@/components/ui/ModalDialog';
 import { Spinner } from '@/components/ui/Spinner';
-import styles from './page.module.css';
-import balanceStyles from '@/components/khata/BalanceSummary.module.css';
+import balanceStyles from '@/styles/balance-summary.module.css';
+import headerStyles from '@/styles/ledger-header.module.css';
+import alertStyles from '@/styles/alert-banner.module.css';
 import { useParams } from 'next/navigation';
 import { LedgerData } from '@/types';
 import { logger } from '@/utils/logger';
@@ -116,8 +117,8 @@ export default function PublicKhata() {
 
   return (
     <main className="layout-container flex-col" aria-live="polite">
-      <header className={styles.header} role="banner">
-        <h1 className={styles.name}>{customer.name}&apos;s Ledger</h1>
+      <header className={headerStyles.headerPrimary} role="banner">
+        <h1 className={headerStyles.name}>{customer.name}&apos;s Ledger</h1>
       </header>
 
       <section className="txns-container p-md" aria-label="Ledger overview">
@@ -140,10 +141,10 @@ export default function PublicKhata() {
       </section>
 
       {pendingTransaction && (
-        <aside className={styles.stickyBanner} role="alert" aria-live="assertive">
+        <aside className={alertStyles.alertBannerSticky} role="alert" aria-live="assertive">
           <div className="flex-col gap-sm">
-            <h3 className={`${styles.bannerTitle} m-0`}>Action Required</h3>
-            <p className={styles.bannerText}>
+            <h3 className={`${alertStyles.alertBannerTitle} m-0`}>Action Required</h3>
+            <p className={alertStyles.alertBannerText}>
               The merchant added a new transaction:
               <strong> {pendingTransaction.description} </strong>
               for <strong>Rs. {pendingTransaction.originalAmount}</strong>.

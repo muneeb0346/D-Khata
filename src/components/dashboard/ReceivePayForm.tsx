@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
-import styles from './ReceivePayForm.module.css';
+import styles from '@/components/ui/FormSheet.module.css';
 
 interface Props {
   onSubmit: (amount: number) => Promise<string | undefined>;

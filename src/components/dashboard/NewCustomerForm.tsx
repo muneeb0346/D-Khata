@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/Button';
-import styles from './NewCustomerForm.module.css';
+import styles from '@/components/ui/FormSheet.module.css';
 import { createCustomer, updateCustomer } from '@/server/actions';
 import { sanitizeName, formatCnic, PHONE_LENGTH, CNIC_MAX_LENGTH } from '@/utils/formatters';
 import { Customer } from '@/types';

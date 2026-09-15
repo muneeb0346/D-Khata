@@ -3,8 +3,8 @@ import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
 import { getLedger } from "@/server/actions";
 import { LedgerData } from "@/types";
-import { useWhatsAppShare } from "@/components/dashboard/useWhatsAppShare";
-import { useClipboardCopy } from "@/components/dashboard/useClipboardCopy";
+import { useWhatsAppShare } from "@/hooks/useWhatsAppShare";
+import { useClipboardCopy } from "@/hooks/useClipboardCopy";
 import { LedgerViewContent } from "@/components/dashboard/LedgerViewContent";
 
 interface Props {

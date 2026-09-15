@@ -7,7 +7,9 @@ import { DeleteCustomerFlow } from "@/components/dashboard/DeleteCustomerFlow";
 import { LedgerFormSheet } from "@/components/dashboard/LedgerFormSheet";
 import { ModalDialog } from "@/components/ui/ModalDialog";
 import { Customer, Transaction } from "@/types";
-import balanceStyles from "@/components/khata/BalanceSummary.module.css";
+import balanceStyles from "@/styles/balance-summary.module.css";
+import headerStyles from "@/styles/ledger-header.module.css";
+import alertStyles from "@/styles/alert-banner.module.css";
 import styles from "./LedgerViewContent.module.css";
 
 interface Props {
@@ -56,7 +58,7 @@ export function LedgerViewContent({
 }: Props) {
   return (
     <article className="flex-col h-full" aria-live="polite">
-      <header className={styles.header}>
+      <header className={headerStyles.header}>
         <div className="flex-row justify-between gap-md">
           <Button variant="secondary" onClick={onBack} className="w-auto" aria-label="Go back to customer list">
             ← Back
@@ -69,7 +71,7 @@ export function LedgerViewContent({
           </Button>
         </div>
         <div className="flex-col">
-          <h2 className={styles.name}>{customer.name}</h2>
+          <h2 className={headerStyles.name}>{customer.name}</h2>
         </div>
       </header>
 
@@ -82,7 +84,7 @@ export function LedgerViewContent({
 
       <section className="txns-container" aria-label="Transactions">
         {isLocked && (
-          <div className={styles.lockedBanner} role="alert">
+          <div className={alertStyles.alertBanner} role="alert">
             Account Locked: Awaiting customer verification for a pending transaction.
           </div>
         )}
