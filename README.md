@@ -140,6 +140,8 @@ This project includes a GitHub Actions CI pipeline that runs on every push and p
 
 Check the [Actions tab](https://github.com/muneeb0346/D-Khata/actions) for build status.
 
+**Current coverage:** 92.9% lines across 136 tests in 9 spec files.
+
 ## Environment Variables
 
 | Variable | Required | Description |
