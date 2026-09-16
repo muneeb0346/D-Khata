@@ -1,0 +1,7 @@
+.layout-header {
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-2xl);
+  text-align: center;
+}

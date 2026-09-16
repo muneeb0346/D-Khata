@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { getCustomers } from '@/server/actions';
 import { Customer } from '@/types';
 import { logger } from '@/utils/logger';
+import pageStyles from './page.module.css';
 
 const DASHBOARD_CUSTOMER_KEY = 'd-khata.dashboard.customerId';
 
@@ -148,7 +149,7 @@ export default function Dashboard() {
 
       {(view === 'list' || view === 'new') && (
         <>
-          <header className="p-md layout-header" role="banner">
+          <header className={`p-md ${pageStyles['layout-header']}`} role="banner">
             D-Khata Dashboard
           </header>
           <CustomerList

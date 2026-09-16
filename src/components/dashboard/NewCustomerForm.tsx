@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import styles from '@/components/ui/FormSheet.module.css';
+import formSheetStyles from '@/styles/form-sheet.module.css';
 import { createCustomer, updateCustomer } from '@/server/actions';
 import { sanitizeName, formatCnic, PHONE_LENGTH, CNIC_MAX_LENGTH } from '@/utils/formatters';
 import { Customer } from '@/types';
@@ -80,7 +81,7 @@ export function CustomerForm({ initialData, onCancel, onSuccess }: Props) {
       <section className={styles.sheet} onClick={(e) => e.stopPropagation()}>
         <h2 className={styles.title}>{isEdit ? 'Edit Customer' : 'New Customer'}</h2>
 
-        {error && <div className="form-error-banner" role="alert" aria-live="assertive">{error}</div>}
+        {error && <div className={formSheetStyles['form-error-banner']} role="alert" aria-live="assertive">{error}</div>}
 
         <form id="new-customer-form" onSubmit={handleSubmit} className="flex-col gap-md" noValidate>
           <div className="flex-col gap-sm">

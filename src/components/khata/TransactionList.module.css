@@ -1,0 +1,60 @@
+.card-pending {
+  border: var(--border-width-md) solid var(--color-warning);
+}
+
+.card-disputed {
+  border: var(--border-width-md) solid var(--color-danger);
+  background: color-mix(in oklab, var(--color-danger) 8%, var(--color-surface));
+}
+
+.status-settled {
+  opacity: var(--opacity-muted);
+  background: var(--color-bg);
+}
+
+.status-unpaid {
+  border-left: var(--border-width-md) solid var(--color-danger);
+}
+
+.badge-settled {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-semibold);
+  margin-top: var(--spacing-xs);
+}
+
+.badge-unpaid {
+  font-size: var(--font-size-xs);
+  color: var(--color-danger);
+  font-weight: var(--font-weight-bold);
+  margin-top: var(--spacing-xs);
+}
+
+.badge-disputed {
+  font-size: var(--font-size-xs);
+  color: var(--color-danger);
+  font-weight: var(--font-weight-bold);
+  margin-top: var(--spacing-xs);
+}
+
+.partial-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-xs);
+}
+
+.partial-text {
+  font-size: var(--font-size-xs);
+  color: var(--color-warning);
+  font-weight: var(--font-weight-semibold);
+}
+
+.items-end {
+  align-items: flex-end;
+}
+
+.text-center {
+  text-align: center;
+}

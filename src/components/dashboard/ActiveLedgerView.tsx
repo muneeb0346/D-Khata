@@ -6,6 +6,7 @@ import { LedgerData } from "@/types";
 import { useWhatsAppShare } from "@/hooks/useWhatsAppShare";
 import { useClipboardCopy } from "@/hooks/useClipboardCopy";
 import { LedgerViewContent } from "@/components/dashboard/LedgerViewContent";
+import wAutoStyles from "@/styles/w-auto.module.css";
 
 interface Props {
   customerId: string;
@@ -124,7 +125,7 @@ export function ActiveLedgerView({ customerId, onBack }: Props) {
         <div className="card-base flex-col gap-sm">
           <strong className="text-debt">{error}</strong>
           <div className="flex-row gap-md">
-            <Button variant="secondary" onClick={onBack} className="w-auto">← Back</Button>
+            <Button variant="secondary" onClick={onBack} className={wAutoStyles['w-auto']}>← Back</Button>
             <Button variant="primary" onClick={() => fetchLedger()}>Try Again</Button>
           </div>
         </div>

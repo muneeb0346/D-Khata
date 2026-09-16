@@ -10,3 +10,7 @@
 .editBtn {
   width: auto;
 }
+
+.items-center {
+  align-items: center;
+}

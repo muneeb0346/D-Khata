@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import styles from '@/components/ui/FormSheet.module.css';
+import formSheetStyles from '@/styles/form-sheet.module.css';
 
 interface Props {
   onSubmit: (data: { amount: number; description: string }) => Promise<string | undefined>;
@@ -57,7 +58,7 @@ export function AddCreditForm({ onSubmit, onCancel }: Props) {
       <section className={styles.sheet} onClick={(e) => e.stopPropagation()}>
         <h3 className={styles.title}>Add Credit</h3>
 
-        {submitError && <div className="form-error-banner" role="alert" aria-live="assertive">{submitError}</div>}
+        {submitError && <div className={formSheetStyles['form-error-banner']} role="alert" aria-live="assertive">{submitError}</div>}
 
         <form onSubmit={handleSubmit} className="flex-col gap-md" noValidate>
           <div className="flex-col gap-sm">

@@ -19,8 +19,10 @@
   --radius-lg: 16px;
   --radius-full: 9999px;
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 10px 15px -3px rgba(0, 0, 0, 0.03);
-  --shadow-up: 0 -4px 6px -1px rgba(0, 0, 0, 0.05), 0 -10px 15px -3px rgba(0, 0, 0, 0.03);
+  --shadow-md:
+    0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 10px 15px -3px rgba(0, 0, 0, 0.03);
+  --shadow-up:
+    0 -4px 6px -1px rgba(0, 0, 0, 0.05), 0 -10px 15px -3px rgba(0, 0, 0, 0.03);
   --font-size-xs: 0.8rem;
   --font-size-sm: 0.875rem;
   --font-size-md: 1rem;
@@ -51,7 +53,9 @@
 body {
   background-color: var(--color-bg);
   color: var(--color-text-main);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -66,14 +70,6 @@ body {
   position: relative;
 }
 
-.layout-header {
-  background: var(--color-primary);
-  color: var(--color-text-inverse);
-  font-weight: var(--font-weight-bold);
-  font-size: var(--font-size-2xl);
-  text-align: center;
-}
-
 .card-base {
   width: 100%;
   background: var(--color-surface);
@@ -81,25 +77,6 @@ body {
   border-radius: var(--radius-md);
   padding: var(--spacing-md);
   box-shadow: var(--shadow-sm);
-}
-
-.form-error-banner {
-  background-color: var(--color-danger);
-  color: var(--color-surface);
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  margin-bottom: var(--spacing-md);
-}
-
-.card-pending {
-  border: var(--border-width-md) solid var(--color-warning);
-}
-
-.card-disputed {
-  border: var(--border-width-md) solid var(--color-danger);
-  background: color-mix(in oklab, var(--color-danger) 8%, var(--color-surface));
 }
 
 .section-title {
@@ -134,77 +111,6 @@ body {
   color: var(--color-primary);
 }
 
-.status-settled {
-  opacity: var(--opacity-muted);
-  background: var(--color-bg);
-}
-
-.status-unpaid {
-  border-left: var(--border-width-md) solid var(--color-danger);
-}
-
-.badge-settled {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
-  font-weight: var(--font-weight-semibold);
-  margin-top: var(--spacing-xs);
-}
-
-.badge-unpaid {
-  font-size: var(--font-size-xs);
-  color: var(--color-danger);
-  font-weight: var(--font-weight-bold);
-  margin-top: var(--spacing-xs);
-}
-
-.badge-disputed {
-  font-size: var(--font-size-xs);
-  color: var(--color-danger);
-  font-weight: var(--font-weight-bold);
-  margin-top: var(--spacing-xs);
-}
-
-/* Progress Bar */
-.partial-container {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: var(--spacing-xs);
-  margin-top: var(--spacing-xs);
-}
-
-.partial-text {
-  font-size: var(--font-size-xs);
-  color: var(--color-warning);
-  font-weight: var(--font-weight-semibold);
-}
-
-.progress-bar {
-  width: 100%;
-  min-width: var(--tap-target-min);
-  height: var(--spacing-xs);
-  -webkit-appearance: none;
-  appearance: none;
-  border: none;
-  background-color: var(--color-border);
-  border-radius: var(--radius-full);
-}
-
-.progress-bar::-webkit-progress-bar {
-  background-color: var(--color-border);
-  border-radius: var(--radius-full);
-}
-
-.progress-bar::-webkit-progress-value {
-  background-color: var(--color-primary);
-  border-radius: var(--radius-full);
-}
-
-.progress-bar::-moz-progress-bar {
-  background-color: var(--color-primary);
-  border-radius: var(--radius-full);
-}
-
 /* Accessibility */
 .sr-only {
   position: absolute;
@@ -231,36 +137,12 @@ body {
   flex-direction: row;
 }
 
-.items-center {
-  align-items: center;
-}
-
-.items-end {
-  align-items: flex-end;
-}
-
-.justify-between {
-  justify-content: space-between;
-}
-
-.justify-center {
-  justify-content: center;
-}
-
 .w-full {
   width: 100%;
 }
 
-.w-auto {
-  width: auto;
-}
-
 .h-full {
   height: 100%;
-}
-
-.gap-xs {
-  gap: var(--spacing-xs);
 }
 
 .gap-sm {
@@ -279,14 +161,6 @@ body {
   margin-top: var(--spacing-md);
 }
 
-.mb-md {
-  margin-bottom: var(--spacing-md);
-}
-
-.p-0 {
-  padding: 0;
-}
-
 .p-md {
   padding: var(--spacing-md);
 }
@@ -295,18 +169,14 @@ body {
   padding-bottom: 0;
 }
 
-.text-center {
-  text-align: center;
-}
-
 .text-muted {
   color: var(--color-text-muted);
 }
 
-.text-xs {
-  font-size: var(--font-size-xs);
+.justify-between {
+  justify-content: space-between;
 }
 
-.text-sm {
-  font-size: var(--font-size-sm);
+.text-xs {
+  font-size: var(--font-size-xs);
 }

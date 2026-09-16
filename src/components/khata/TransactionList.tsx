@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { Transaction } from '@/types';
+import styles from './TransactionList.module.css';
 
 interface Props {
   transactions: Transaction[];
@@ -10,7 +11,7 @@ export function TransactionList({ transactions }: Props) {
   }, [transactions]);
 
   if (!transactions || transactions.length === 0) {
-    return <p className="text-center text-muted p-md">No transactions yet.</p>;
+    return <p className={`${styles['text-center']} text-muted p-md`}>No transactions yet.</p>;
   }
 
   return (
@@ -23,10 +24,10 @@ export function TransactionList({ transactions }: Props) {
 
         const cardClass = [
           'card-base',
-          approval === 'PENDING' ? 'card-pending' : '',
-          isDisputed ? 'card-disputed' : '',
-          isSettled ? 'status-settled' : '',
-          isUnpaid ? 'status-unpaid' : '',
+          approval === 'PENDING' ? styles['card-pending'] : '',
+          isDisputed ? styles['card-disputed'] : '',
+          isSettled ? styles['status-settled'] : '',
+          isUnpaid ? styles['status-unpaid'] : '',
         ].filter(Boolean).join(' ');
 
         return (
@@ -46,13 +47,13 @@ export function TransactionList({ transactions }: Props) {
             </div>
 
             {(isSettled || isUnpaid || isPartial || isDisputed) && (
-              <div className="flex-col items-end mt-sm">
-                {isSettled && !isDisputed && <span className="badge-settled">Fully Paid</span>}
-                {isUnpaid && <span className="badge-unpaid">Unpaid</span>}
-                {isDisputed && <span className="badge-disputed">Disputed</span>}
+              <div className={`${styles['items-end']} mt-sm`}>
+                {isSettled && !isDisputed && <span className={styles['badge-settled']}>Fully Paid</span>}
+                {isUnpaid && <span className={styles['badge-unpaid']}>Unpaid</span>}
+                {isDisputed && <span className={styles['badge-disputed']}>Disputed</span>}
                 {isPartial && (
-                  <div className="partial-container">
-                    <label htmlFor={`progress-${id}`} className="partial-text">Rs. {remainingBalance} left</label>
+                  <div className={styles['partial-container']}>
+                    <label htmlFor={`progress-${id}`} className={styles['partial-text']}>Rs. {remainingBalance} left</label>
                     <progress id={`progress-${id}`} className="progress-bar" value={originalAmount - remainingBalance} max={originalAmount}>
                       {((originalAmount - remainingBalance) / originalAmount) * 100}%
                     </progress>
