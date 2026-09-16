@@ -1,25 +1,28 @@
 type LogLevel = "info" | "warn" | "error";
 
-const prefix = "[D-Khata]";
-
-function formatMessage(
+function writeLog(
   level: LogLevel,
   message: string,
   data?: Record<string, unknown>,
-): string {
-  const timestamp = new Date().toISOString();
-  const payload = data ? ` ${JSON.stringify(data)}` : "";
-  return `${prefix} [${timestamp}] [${level.toUpperCase()}] ${message}${payload}`;
+): void {
+  const entry = JSON.stringify({
+    level,
+    message,
+    ...(data ? { data } : {}),
+    timestamp: new Date().toISOString(),
+  });
+  if (level === "error") console.error(entry);
+  else console.log(entry);
 }
 
 export const logger = {
   info(message: string, data?: Record<string, unknown>): void {
-    console.log(formatMessage("info", message, data));
+    writeLog("info", message, data);
   },
   warn(message: string, data?: Record<string, unknown>): void {
-    console.warn(formatMessage("warn", message, data));
+    writeLog("warn", message, data);
   },
   error(message: string, data?: Record<string, unknown>): void {
-    console.error(formatMessage("error", message, data));
+    writeLog("error", message, data);
   },
 };
