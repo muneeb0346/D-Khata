@@ -13,13 +13,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Pure `reconcileLedger` and `validateCustomerData` modules extracted for testability
 - Shared CSS modules: `balance-summary`, `ledger-header`, `alert-banner`, `FormSheet`
 - Custom hooks relocated to `src/hooks/` (`useWhatsAppShare`, `useClipboardCopy`)
-- Structured logging via `src/utils/logger`
+- Structured JSON logging via `src/utils/logger`
+- Zod schema validation at server action entry points (`CustomerPayloadSchema`, `CreditPayloadSchema`)
+- Health check route at `src/app/api/health/route.ts` (200 when DB reachable, 503 otherwise)
+- Local Postgres via `docker-compose.yml` for one-command reproducibility
 
 ### Changed
-- **Test coverage: 30% → 92.9% lines** (136 tests across 9 files, threshold 70%)
+- **Test coverage: 30% → 93.4% lines** (275 tests across 18 files, threshold 70%)
 - `ActiveLedgerView.tsx` decomposed from 430 LOC to 158 LOC coordinator
 - Single source of truth for business logic: `actions.ts` now imports from `lib/validation.ts` and `db/reconcile.ts`
 - Duplicated CSS consolidated into shared modules in `src/styles/` and `src/components/ui/`
+- `globals.css` slimmed to global-only rules; multi-component classes moved to `styles/`, single-component classes to their module
+- Balance label formatting centralized in `formatBalanceLabel` / `formatBalanceAmount`
 
 ### Security
 - Server Actions with CSRF protection via Next.js

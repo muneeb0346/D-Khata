@@ -79,8 +79,17 @@ To run this project locally, follow these steps:
 
 ```
 
+2.1 **(Optional) Start a local database with Docker:**
+
+```bash
+   docker compose up -d
+```
+
+This starts a Postgres 16 container. Then point your `.env.local` at it:
+`DATABASE_URL=postgresql://dkhata:dkhata@localhost:5432/dkhata`
+
 3. **Configure Environment Variables:**
-Copy the example environment file and add your database connection string:
+   Copy the example environment file and add your database connection string:
 
 ```bash
    cp .env.example .env.local
@@ -129,6 +138,11 @@ Then edit `.env.local` to set your `DATABASE_URL` (PostgreSQL/NeonDB connection 
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Observability
+
+- **Structured logging:** `src/utils/logger.ts` emits one JSON object per log line (`level`, `message`, `data`, `timestamp`).
+- **Health check:** `GET /api/health` returns `200 {"status":"ok","db":"connected"}` when the database is reachable, or `503` with a `detail` field otherwise. Run it with `curl http://localhost:3000/api/health`.
+
 ## CI
 
 This project includes a GitHub Actions CI pipeline that runs on every push and pull request. The pipeline executes:
@@ -140,7 +154,7 @@ This project includes a GitHub Actions CI pipeline that runs on every push and p
 
 Check the [Actions tab](https://github.com/muneeb0346/D-Khata/actions) for build status.
 
-**Current coverage:** 92.9% lines across 136 tests in 9 spec files.
+**Current coverage:** 93.4% lines across 275 tests in 18 spec files.
 
 ## Environment Variables
 
