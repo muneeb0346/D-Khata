@@ -6,6 +6,10 @@ import { eq, and, asc, ne } from "drizzle-orm";
 import type { Customer, LedgerData, Transaction } from "@/types";
 import { validateCustomerData } from "@/server/lib/validation";
 import { reconcileLedger } from "@/server/db/reconcile";
+import {
+  CustomerPayloadSchema,
+  CreditPayloadSchema,
+} from "@/server/lib/schemas";
 
 type CustomerPayload = {
   name: string;
@@ -65,6 +69,13 @@ export async function updateCustomer(
   customerId: string,
   customerData: CustomerPayload,
 ): Promise<CustomerActionResult> {
+  const parsed = CustomerPayloadSchema.safeParse(customerData);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: parsed.error.issues[0]?.message ?? "Invalid input.",
+    };
+  }
   const validationError = validateCustomerData(customerData);
   if (validationError) {
     return validationError;
@@ -99,6 +110,13 @@ export async function updateCustomer(
 export async function createCustomer(
   customerData: CustomerPayload,
 ): Promise<CustomerActionResult> {
+  const parsed = CustomerPayloadSchema.safeParse(customerData);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: parsed.error.issues[0]?.message ?? "Invalid input.",
+    };
+  }
   const validationError = validateCustomerData(customerData);
   if (validationError) {
     return validationError;
@@ -183,6 +201,13 @@ export async function addPendingCredit(
   customerId: string,
   transactionData: { description: string; amount: number },
 ): Promise<TransactionActionResult> {
+  const parsed = CreditPayloadSchema.safeParse(transactionData);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: parsed.error.issues[0]?.message ?? "Invalid input.",
+    };
+  }
   try {
     return await db.transaction(async (tx) => {
       const customer = await tx.query.customers.findFirst({
