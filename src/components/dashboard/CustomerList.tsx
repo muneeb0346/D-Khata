@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Spinner } from '@/components/ui/Spinner';
 import styles from './CustomerList.module.css';
 import { Customer } from '@/types';
+import { formatBalanceLabel } from '@/utils/formatters';
 
 interface CustomerListProps {
   customers: Customer[];
@@ -127,7 +128,7 @@ export const CustomerList = React.memo(function CustomerList({ customers, isLoad
                 </div>
                 <span className={`${styles.balance} ${(c.totalBalance ?? 0) < 0 ? styles.advance : ((c.totalBalance ?? 0) > 0 ? styles.debt : '')}`}>
                   Rs. {Math.abs(c.totalBalance ?? 0)}
-                  {(c.totalBalance ?? 0) < 0 ? ' (Adv)' : ''}
+                  {formatBalanceLabel(c.totalBalance) && ` ${formatBalanceLabel(c.totalBalance)}`}
                 </span>
               </button>
             </li>

@@ -12,6 +12,7 @@ import headerStyles from "@/styles/ledger-header.module.css";
 import alertStyles from "@/styles/alert-banner.module.css";
 import wAutoStyles from "@/styles/w-auto.module.css";
 import styles from "./LedgerViewContent.module.css";
+import { formatBalanceLabel, formatBalanceAmount } from "@/utils/formatters";
 
 interface Props {
   customer: Customer;
@@ -79,7 +80,7 @@ export function LedgerViewContent({
       <div className={balanceStyles.balanceHeader}>
         <span className="text-muted">Current Balance</span>
         <h2 className={`${balanceStyles.balanceAmount} ${Number(customer.totalBalance ?? 0) < 0 ? "text-advance" : Number(customer.totalBalance ?? 0) > 0 ? "text-debt" : ""}`}>
-          Rs. {Math.abs(Number(customer.totalBalance ?? 0))} {Number(customer.totalBalance ?? 0) < 0 ? "(Adv)" : Number(customer.totalBalance ?? 0) > 0 ? "(Debt)" : ""}
+          Rs. {formatBalanceAmount(customer.totalBalance)} {formatBalanceLabel(customer.totalBalance)}
         </h2>
       </div>
 

@@ -13,6 +13,7 @@ import alertStyles from '@/styles/alert-banner.module.css';
 import { useParams } from 'next/navigation';
 import { LedgerData } from '@/types';
 import { logger } from '@/utils/logger';
+import { formatBalanceLabel, formatBalanceAmount } from '@/utils/formatters';
 
 export default function PublicKhata() {
   const params = useParams();
@@ -125,7 +126,7 @@ export default function PublicKhata() {
         <div className={balanceStyles.balanceHeader}>
           <span className="text-muted">Current Balance</span>
           <h2 className={`${balanceStyles.balanceAmount} ${Number(customer.totalBalance ?? 0) < 0 ? 'text-advance' : (Number(customer.totalBalance ?? 0) > 0 ? 'text-debt' : '')}`}>
-            Rs. {Math.abs(Number(customer.totalBalance ?? 0))} {Number(customer.totalBalance ?? 0) < 0 ? '(Adv)' : (Number(customer.totalBalance ?? 0) > 0 ? '(Debt)' : '')}
+            Rs. {formatBalanceAmount(customer.totalBalance)} {formatBalanceLabel(customer.totalBalance)}
           </h2>
         </div>
 
