@@ -7,7 +7,6 @@ import * as Sentry from "@sentry/nextjs";
 import { logger } from "@/utils/logger";
 import type { LedgerData, Transaction } from "@/types";
 import { reconcileLedger } from "@/server/db/reconcile";
-import { validateCustomerData } from "@/server/lib/validation"; // eslint-disable-line @typescript-eslint/no-unused-vars
 import { CreditPayloadSchema } from "@/server/lib/schemas";
 /* eslint-disable @typescript-eslint/no-unused-vars */
 function getTxDateValue(txn: Transaction) {
