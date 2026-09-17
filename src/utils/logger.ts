@@ -1,5 +1,17 @@
 type LogLevel = "info" | "warn" | "error";
 
+function serializeData(data?: Record<string, unknown>): unknown {
+  if (!data) return undefined;
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(data)) {
+    out[k] =
+      v instanceof Error
+        ? { message: v.message, stack: v.stack, name: v.name }
+        : v;
+  }
+  return out;
+}
+
 function writeLog(
   level: LogLevel,
   message: string,
@@ -8,7 +20,7 @@ function writeLog(
   const entry = JSON.stringify({
     level,
     message,
-    ...(data ? { data } : {}),
+    ...(data ? { data: serializeData(data) } : {}),
     timestamp: new Date().toISOString(),
   });
   if (level === "error") console.error(entry);

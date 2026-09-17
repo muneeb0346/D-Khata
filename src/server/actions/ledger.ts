@@ -85,7 +85,7 @@ export async function getLedger(
     Sentry.captureException(error);
     return {
       ok: false,
-      error: error instanceof Error ? error.message : "Failed to load ledger.",
+      error: "Failed to load ledger.",
     };
   }
 }
@@ -170,7 +170,7 @@ export async function addPendingCredit(
     Sentry.captureException(error);
     return {
       ok: false,
-      error: error instanceof Error ? error.message : "Failed to add credit.",
+      error: "Failed to add credit.",
     };
   }
 }
@@ -271,10 +271,7 @@ export async function resolveTransaction(
     Sentry.captureException(error);
     return {
       ok: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "Failed to resolve transaction.",
+      error: "Failed to resolve transaction.",
     };
   }
 }
@@ -370,8 +367,7 @@ export async function processPayment(
     Sentry.captureException(error);
     return {
       ok: false,
-      error:
-        error instanceof Error ? error.message : "Failed to process payment.",
+      error: "Failed to process payment.",
     };
   }
 }
@@ -421,8 +417,7 @@ export async function deleteCustomer(
     Sentry.captureException(error);
     return {
       ok: false,
-      error:
-        error instanceof Error ? error.message : "Failed to delete customer.",
+      error: "Failed to delete customer.",
     };
   }
 }

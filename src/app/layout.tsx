@@ -1,5 +1,3 @@
-import "../../sentry.client.config";
-import "../../sentry.server.config";
 import type { Metadata } from "next";
 import "@/styles/reset.css";
 import "@/styles/globals.css";

@@ -97,8 +97,7 @@ export async function updateCustomer(
     Sentry.captureException(error);
     return {
       ok: false,
-      error:
-        error instanceof Error ? error.message : "Failed to update customer.",
+      error: "Failed to update customer.",
     };
   }
 }
@@ -148,8 +147,7 @@ export async function createCustomer(
     Sentry.captureException(error);
     return {
       ok: false,
-      error:
-        error instanceof Error ? error.message : "Failed to create customer.",
+      error: "Failed to create customer.",
     };
   }
 }
