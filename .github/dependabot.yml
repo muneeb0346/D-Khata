@@ -4,6 +4,10 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    ignore:
+      - dependency-name: jsdom
+        versions:
+          - ">=30"
   - package-ecosystem: github-actions
     directory: /
     schedule:
