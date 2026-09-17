@@ -6,7 +6,8 @@ updates:
       interval: weekly
     ignore:
       - dependency-name: jsdom
-        update-type: major
+        versions:
+          - ">=30"
   - package-ecosystem: github-actions
     directory: /
     schedule:
