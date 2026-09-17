@@ -3,6 +3,8 @@
 import { db } from "@/server/db";
 import { customers, transactions } from "@/server/db/schema";
 import { eq, and, asc } from "drizzle-orm";
+import * as Sentry from "@sentry/nextjs";
+import { logger } from "@/utils/logger";
 import type { LedgerData, Transaction } from "@/types";
 import { reconcileLedger } from "@/server/db/reconcile";
 import { validateCustomerData } from "@/server/lib/validation"; // eslint-disable-line @typescript-eslint/no-unused-vars
@@ -79,6 +81,8 @@ export async function getLedger(
       },
     };
   } catch (error) {
+    logger.error("Failed to load ledger", { error });
+    Sentry.captureException(error);
     return {
       ok: false,
       error: error instanceof Error ? error.message : "Failed to load ledger.",
@@ -162,6 +166,8 @@ export async function addPendingCredit(
       return { ok: true, transaction: newTxn };
     });
   } catch (error) {
+    logger.error("Failed to add credit", { error });
+    Sentry.captureException(error);
     return {
       ok: false,
       error: error instanceof Error ? error.message : "Failed to add credit.",
@@ -261,6 +267,8 @@ export async function resolveTransaction(
       return { ok: true, transaction: updatedTxn };
     });
   } catch (error) {
+    logger.error("Failed to resolve transaction", { error });
+    Sentry.captureException(error);
     return {
       ok: false,
       error:
@@ -358,6 +366,8 @@ export async function processPayment(
       };
     });
   } catch (error) {
+    logger.error("Failed to process payment", { error });
+    Sentry.captureException(error);
     return {
       ok: false,
       error:
@@ -407,6 +417,8 @@ export async function deleteCustomer(
       return { ok: true };
     });
   } catch (error) {
+    logger.error("Failed to delete customer", { error });
+    Sentry.captureException(error);
     return {
       ok: false,
       error:
