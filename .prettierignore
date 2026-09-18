@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+next-env.d.ts
+
+# Env files (templates and local env)
+.env*
+
+# Lockfile
+package-lock.json
+
+# Generated Drizzle migrations
+/src/server/db/migrations/
+
+# Coverage
+coverage/
