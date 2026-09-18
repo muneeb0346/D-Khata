@@ -1,9 +1,5 @@
 import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
-import {
-  getLedger,
-  processPayment,
-  deleteCustomer,
-} from "@/server/actions";
+import { getLedger, processPayment, deleteCustomer } from "@/server/actions";
 import { db } from "@/server/db";
 
 vi.mock("drizzle-orm", () => ({
@@ -292,12 +288,8 @@ describe("Server Actions", () => {
 
       expect(result.ledgerData.customer.totalBalance).toBe(375);
 
-      const c3 = result.ledgerData.transactions.find(
-        (txn) => txn.id === "c3-credit",
-      );
-      const c4 = result.ledgerData.transactions.find(
-        (txn) => txn.id === "c4-credit",
-      );
+      const c3 = result.ledgerData.transactions.find((txn) => txn.id === "c3-credit");
+      const c4 = result.ledgerData.transactions.find((txn) => txn.id === "c4-credit");
 
       expect(c3?.remainingBalance).toBe(125);
       expect(c3?.settlement).toBe("PARTIAL");
@@ -424,9 +416,7 @@ describe("Server Actions", () => {
       expect(result.ok).toBe(false);
       if (result.ok) return;
 
-      expect(result.error).toContain(
-        "Confirm you have already received debt before deleting",
-      );
+      expect(result.error).toContain("Confirm you have already received debt before deleting");
       expect(mocks.txMock.delete).not.toHaveBeenCalled();
     });
 

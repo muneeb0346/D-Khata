@@ -1,7 +1,5 @@
 import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
-import {
-  addPendingCredit,
-} from "@/server/actions";
+import { addPendingCredit } from "@/server/actions";
 import { db } from "@/server/db";
 
 vi.mock("drizzle-orm", () => ({
@@ -142,9 +140,7 @@ describe("Server Actions", () => {
         approval: "PENDING",
       });
 
-      await expect(
-        addPendingCredit("c1", { description: "Milk", amount: 100 }),
-      ).resolves.toEqual({
+      await expect(addPendingCredit("c1", { description: "Milk", amount: 100 })).resolves.toEqual({
         ok: false,
         error:
           "Account is locked: a PENDING transaction must be verified before new credit can be added.",
@@ -177,9 +173,10 @@ describe("Server Actions", () => {
     });
 
     it("returns an error when description is empty and amount is zero", async () => {
-      await expect(
-        addPendingCredit("c1", { description: "", amount: 0 }),
-      ).resolves.toEqual({ ok: false, error: "Description is required." });
+      await expect(addPendingCredit("c1", { description: "", amount: 0 })).resolves.toEqual({
+        ok: false,
+        error: "Description is required.",
+      });
     });
   });
 });

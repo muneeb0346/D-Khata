@@ -1,7 +1,5 @@
 import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
-import {
-  resolveTransaction,
-} from "@/server/actions";
+import { resolveTransaction } from "@/server/actions";
 import { db } from "@/server/db";
 
 vi.mock("drizzle-orm", () => ({
@@ -127,9 +125,10 @@ describe("Server Actions", () => {
     it("returns an error when customer does not exist", async () => {
       mocks.queryMock.customers.findFirst.mockResolvedValueOnce(null);
 
-      await expect(resolveTransaction("c1", "t1", "VERIFIED")).resolves.toEqual(
-        { ok: false, error: "Customer not found" },
-      );
+      await expect(resolveTransaction("c1", "t1", "VERIFIED")).resolves.toEqual({
+        ok: false,
+        error: "Customer not found",
+      });
     });
 
     it("returns an error when no pending transaction exists", async () => {
@@ -139,9 +138,7 @@ describe("Server Actions", () => {
       });
       mocks.queryMock.transactions.findFirst.mockResolvedValueOnce(null);
 
-      await expect(
-        resolveTransaction("c1", "missing", "VERIFIED"),
-      ).resolves.toEqual({
+      await expect(resolveTransaction("c1", "missing", "VERIFIED")).resolves.toEqual({
         ok: false,
         error: "No pending transaction found to resolve",
       });
