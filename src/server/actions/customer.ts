@@ -16,26 +16,18 @@ type CustomerPayload = {
 import { validateCustomerData } from "@/server/lib/validation";
 import { CustomerPayloadSchema } from "@/server/lib/schemas";
 
-type CustomerActionResult =
-  | { ok: true; customer: Customer }
-  | { ok: false; error: string };
+type CustomerActionResult = { ok: true; customer: Customer } | { ok: false; error: string };
 
 async function findExistingCustomerByPhoneOrCnic(
   customerData: CustomerPayload,
   excludeCustomerId?: string,
 ) {
   const phoneWhere = excludeCustomerId
-    ? and(
-        eq(customers.phone, customerData.phone),
-        ne(customers.id, excludeCustomerId),
-      )
+    ? and(eq(customers.phone, customerData.phone), ne(customers.id, excludeCustomerId))
     : eq(customers.phone, customerData.phone);
 
   const cnicWhere = excludeCustomerId
-    ? and(
-        eq(customers.cnic, customerData.cnic as string),
-        ne(customers.id, excludeCustomerId),
-      )
+    ? and(eq(customers.cnic, customerData.cnic as string), ne(customers.id, excludeCustomerId))
     : eq(customers.cnic, customerData.cnic as string);
 
   const existingCustomerByPhone = await db.query.customers.findFirst({
@@ -67,19 +59,16 @@ export async function updateCustomer(
     return validationError;
   }
 
-  const existingCustomer = await findExistingCustomerByPhoneOrCnic(
-    customerData,
-    customerId,
-  );
-
-  if (existingCustomer) {
-    return {
-      ok: false,
-      error: "Another customer with this phone number or CNIC already exists.",
-    };
-  }
-
   try {
+    const existingCustomer = await findExistingCustomerByPhoneOrCnic(customerData, customerId);
+
+    if (existingCustomer) {
+      return {
+        ok: false,
+        error: "Another customer with this phone number or CNIC already exists.",
+      };
+    }
+
     const [updatedCustomer] = await db
       .update(customers)
       .set({
@@ -102,9 +91,7 @@ export async function updateCustomer(
   }
 }
 
-export async function createCustomer(
-  customerData: CustomerPayload,
-): Promise<CustomerActionResult> {
+export async function createCustomer(customerData: CustomerPayload): Promise<CustomerActionResult> {
   const parsed = CustomerPayloadSchema.safeParse(customerData);
   if (!parsed.success) {
     return {
@@ -118,8 +105,7 @@ export async function createCustomer(
   }
 
   try {
-    const existingCustomer =
-      await findExistingCustomerByPhoneOrCnic(customerData);
+    const existingCustomer = await findExistingCustomerByPhoneOrCnic(customerData);
 
     if (existingCustomer) {
       return {
