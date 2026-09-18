@@ -12,9 +12,7 @@ function hasValidPhone(phone: string) {
   return digitsOnly.length >= 10 && digitsOnly.length <= 11;
 }
 
-export function validateCustomerData(
-  customerData: CustomerPayload,
-): ActionFailure | null {
+export function validateCustomerData(customerData: CustomerPayload): ActionFailure | null {
   if (!customerData.name || /\d/.test(customerData.name)) {
     return { ok: false, error: "Name is required." };
   }

@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/Button';
-import { ModalDialog } from '@/components/ui/ModalDialog';
-import { deleteCustomer } from '@/server/actions';
-import { Customer } from '@/types';
-import styles from './DeleteCustomerFlow.module.css';
+import { useState } from "react";
+import { Button } from "@/components/ui/Button";
+import { ModalDialog } from "@/components/ui/ModalDialog";
+import { deleteCustomer } from "@/server/actions";
+import { Customer } from "@/types";
+import styles from "./DeleteCustomerFlow.module.css";
 
 interface Props {
   customer: Customer;
@@ -19,7 +19,7 @@ interface DialogState {
   confirmLabel?: string;
   cancelLabel?: string;
   showCancel?: boolean;
-  variant?: 'primary' | 'danger';
+  variant?: "primary" | "danger";
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -36,10 +36,10 @@ export function DeleteCustomerFlow({ customer, customerId, onDeleteSuccess }: Pr
       const result = await deleteCustomer(customerId, acknowledgeNonZeroBalance);
       if (!result.ok) {
         setDialogState({
-          title: 'Delete Failed',
+          title: "Delete Failed",
           message: result.error,
-          confirmLabel: 'OK',
-          variant: 'danger',
+          confirmLabel: "OK",
+          variant: "danger",
           onConfirm: () => setDialogState(null),
           onCancel: () => setDialogState(null),
         });
@@ -47,10 +47,10 @@ export function DeleteCustomerFlow({ customer, customerId, onDeleteSuccess }: Pr
       }
 
       setDialogState({
-        title: 'Customer Deleted',
-        message: 'Customer and related transactions were deleted successfully.',
-        confirmLabel: 'OK',
-        variant: 'primary',
+        title: "Customer Deleted",
+        message: "Customer and related transactions were deleted successfully.",
+        confirmLabel: "OK",
+        variant: "primary",
         onConfirm: () => {
           setDialogState(null);
           onDeleteSuccess();
@@ -62,10 +62,10 @@ export function DeleteCustomerFlow({ customer, customerId, onDeleteSuccess }: Pr
       });
     } catch {
       setDialogState({
-        title: 'Delete Failed',
-        message: 'Failed to delete customer.',
-        confirmLabel: 'OK',
-        variant: 'danger',
+        title: "Delete Failed",
+        message: "Failed to delete customer.",
+        confirmLabel: "OK",
+        variant: "danger",
         onConfirm: () => setDialogState(null),
         onCancel: () => setDialogState(null),
       });
@@ -78,19 +78,20 @@ export function DeleteCustomerFlow({ customer, customerId, onDeleteSuccess }: Pr
     const normalizedBalance = Number(customer.totalBalance ?? 0);
     const amount = Math.abs(normalizedBalance);
 
-    const confirmationMessage = normalizedBalance > 0
-      ? `Customer ${customer.name} has debt of Rs. ${amount}. Confirm that you have already received this amount and want to delete all records for this customer.`
-      : normalizedBalance < 0
-        ? `Customer ${customer.name} has advance of Rs. ${amount}. Confirm that you have already paid this amount to the customer and want to delete all records.`
-        : `Delete ${customer.name} and all related transactions permanently?`;
+    const confirmationMessage =
+      normalizedBalance > 0
+        ? `Customer ${customer.name} has debt of Rs. ${amount}. Confirm that you have already received this amount and want to delete all records for this customer.`
+        : normalizedBalance < 0
+          ? `Customer ${customer.name} has advance of Rs. ${amount}. Confirm that you have already paid this amount to the customer and want to delete all records.`
+          : `Delete ${customer.name} and all related transactions permanently?`;
 
     setDialogState({
-      title: 'Confirm Deletion',
+      title: "Confirm Deletion",
       message: confirmationMessage,
-      confirmLabel: 'Yes, Delete',
-      cancelLabel: 'Cancel',
+      confirmLabel: "Yes, Delete",
+      cancelLabel: "Cancel",
       showCancel: true,
-      variant: 'danger',
+      variant: "danger",
       onConfirm: () => {
         void executeDeleteCustomer(normalizedBalance !== 0);
       },
@@ -110,13 +111,13 @@ export function DeleteCustomerFlow({ customer, customerId, onDeleteSuccess }: Pr
         disabled={isDeleting}
         aria-label="Delete this customer and all related transactions"
       >
-        {isDeleting ? 'Deleting...' : 'Delete Customer'}
+        {isDeleting ? "Deleting..." : "Delete Customer"}
       </Button>
 
       <ModalDialog
         open={!!dialogState}
-        title={dialogState?.title ?? ''}
-        message={dialogState?.message ?? ''}
+        title={dialogState?.title ?? ""}
+        message={dialogState?.message ?? ""}
         confirmLabel={dialogState?.confirmLabel}
         cancelLabel={dialogState?.cancelLabel}
         showCancel={dialogState?.showCancel}

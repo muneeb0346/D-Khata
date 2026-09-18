@@ -25,9 +25,7 @@ function getDerivedSettlement(
 
 type ActionFailure = { ok: false; error: string };
 type LedgerActionResult = { ok: true; ledgerData: LedgerData } | ActionFailure;
-type TransactionActionResult =
-  | { ok: true; transaction: Transaction }
-  | ActionFailure;
+type TransactionActionResult = { ok: true; transaction: Transaction } | ActionFailure;
 type PaymentActionResult =
   | {
       ok: true;
@@ -38,9 +36,7 @@ type PaymentActionResult =
   | ActionFailure;
 type DeleteCustomerActionResult = { ok: true } | ActionFailure;
 
-export async function getLedger(
-  customerId: string,
-): Promise<LedgerActionResult> {
+export async function getLedger(customerId: string): Promise<LedgerActionResult> {
   try {
     const customer = await db.query.customers.findFirst({
       where: eq(customers.id, customerId),
@@ -58,17 +54,13 @@ export async function getLedger(
 
     const pendingTransaction =
       (await db.query.transactions.findFirst({
-        where: and(
-          eq(transactions.customerId, customerId),
-          eq(transactions.approval, "PENDING"),
-        ),
+        where: and(eq(transactions.customerId, customerId), eq(transactions.approval, "PENDING")),
       })) ?? null;
 
     const reconciled = reconcileLedger(customer, txns);
     const reconciledPendingTransaction = pendingTransaction
-      ? (reconciled.transactions.find(
-          (txn) => txn.id === pendingTransaction.id,
-        ) ?? pendingTransaction)
+      ? (reconciled.transactions.find((txn) => txn.id === pendingTransaction.id) ??
+        pendingTransaction)
       : null;
 
     return {
@@ -111,10 +103,7 @@ export async function addPendingCredit(
       }
 
       const existingPending = await tx.query.transactions.findFirst({
-        where: and(
-          eq(transactions.customerId, customerId),
-          eq(transactions.approval, "PENDING"),
-        ),
+        where: and(eq(transactions.customerId, customerId), eq(transactions.approval, "PENDING")),
       });
 
       if (existingPending) {
@@ -219,14 +208,8 @@ export async function resolveTransaction(
           .filter((t) => t.remainingBalance > 0)
           .reduce((sum, t) => sum + t.remainingBalance, 0);
 
-        const normalizedRemaining = Math.max(
-          0,
-          (customer.totalBalance ?? 0) - verifiedOpenBalance,
-        );
-        const nextRemaining = Math.min(
-          txn.remainingBalance,
-          normalizedRemaining,
-        );
+        const normalizedRemaining = Math.max(0, (customer.totalBalance ?? 0) - verifiedOpenBalance);
+        const nextRemaining = Math.min(txn.remainingBalance, normalizedRemaining);
         const nextSettlement =
           nextRemaining === 0
             ? "SETTLED"
@@ -392,21 +375,17 @@ export async function deleteCustomer(
         .orderBy(asc(transactions.date));
 
       const normalizedBalance =
-        reconcileLedger(customer, customerTransactions).customer.totalBalance ??
-        0;
+        reconcileLedger(customer, customerTransactions).customer.totalBalance ?? 0;
 
       if (normalizedBalance !== 0 && !acknowledgeNonZeroBalance) {
-        const pendingAction =
-          normalizedBalance > 0 ? "received debt" : "paid advance";
+        const pendingAction = normalizedBalance > 0 ? "received debt" : "paid advance";
         return {
           ok: false,
           error: `Customer has a non-zero balance. Confirm you have already ${pendingAction} before deleting.`,
         };
       }
 
-      await tx
-        .delete(transactions)
-        .where(eq(transactions.customerId, customerId));
+      await tx.delete(transactions).where(eq(transactions.customerId, customerId));
       await tx.delete(customers).where(eq(customers.id, customerId));
 
       return { ok: true };

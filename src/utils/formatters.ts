@@ -40,8 +40,6 @@ export function formatBalanceLabel(balance: number | null | undefined): string {
   return "";
 }
 
-export function formatBalanceAmount(
-  balance: number | null | undefined,
-): number {
+export function formatBalanceAmount(balance: number | null | undefined): number {
   return Math.abs(Number(balance ?? 0));
 }

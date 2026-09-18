@@ -1,5 +1,5 @@
-import { Button } from '@/components/ui/Button';
-import styles from './ModalDialog.module.css';
+import { Button } from "@/components/ui/Button";
+import styles from "./ModalDialog.module.css";
 
 interface Props {
   open: boolean;
@@ -8,7 +8,7 @@ interface Props {
   confirmLabel?: string;
   cancelLabel?: string;
   showCancel?: boolean;
-  variant?: 'primary' | 'danger';
+  variant?: "primary" | "danger";
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -17,10 +17,10 @@ export function ModalDialog({
   open,
   title,
   message,
-  confirmLabel = 'OK',
-  cancelLabel = 'Cancel',
+  confirmLabel = "OK",
+  cancelLabel = "Cancel",
   showCancel = false,
-  variant = 'primary',
+  variant = "primary",
   onConfirm,
   onCancel,
 }: Props) {
@@ -30,14 +30,18 @@ export function ModalDialog({
     <div className={styles.overlay} onClick={onCancel} role="presentation">
       <section
         className={styles.sheet}
-        role={showCancel ? 'alertdialog' : 'dialog'}
+        role={showCancel ? "alertdialog" : "dialog"}
         aria-modal="true"
         aria-labelledby="modal-dialog-title"
         aria-describedby="modal-dialog-message"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 id="modal-dialog-title" className={styles.title}>{title}</h3>
-        <p id="modal-dialog-message" className={styles.message}>{message}</p>
+        <h3 id="modal-dialog-title" className={styles.title}>
+          {title}
+        </h3>
+        <p id="modal-dialog-message" className={styles.message}>
+          {message}
+        </p>
 
         <div className="flex-row gap-md">
           {showCancel && (

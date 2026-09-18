@@ -47,6 +47,7 @@ This project follows [Conventional Commits](https://www.conventionalcommits.org/
 ## Reporting Issues
 
 Open a GitHub issue with:
+
 - Clear description of the problem
 - Steps to reproduce
 - Expected vs actual behavior

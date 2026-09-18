@@ -1,11 +1,4 @@
-import {
-  pgTable,
-  text,
-  timestamp,
-  integer,
-  pgEnum,
-  index,
-} from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, integer, pgEnum, index } from "drizzle-orm/pg-core";
 
 /**
  * Approval status values for transaction consensus.
@@ -13,11 +6,7 @@ import {
  * VERIFIED: Customer accepted the transaction.
  * DISPUTED: Customer rejected the transaction.
  */
-export const approvalEnum = pgEnum("approval_status", [
-  "PENDING",
-  "VERIFIED",
-  "DISPUTED",
-]);
+export const approvalEnum = pgEnum("approval_status", ["PENDING", "VERIFIED", "DISPUTED"]);
 
 /**
  * Settlement status values for transaction settlement tracking.
@@ -63,10 +52,7 @@ export const transactions = pgTable(
      * Composite index for ledger queries: fetch all transactions for a customer sorted by date.
      * Used by getLedger() and processPayment() FIFO logic.
      */
-    idxCustomerDate: index("idx_transactions_customer_date").on(
-      table.customerId,
-      table.date,
-    ),
+    idxCustomerDate: index("idx_transactions_customer_date").on(table.customerId, table.date),
     /**
      * Index for approval filtering: find pending transactions for consensus lock check.
      * Used by addPendingCredit() lock check and resolveTransaction().

@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import styles from './BalanceGraph.module.css';
-import { Transaction } from '@/types';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import styles from "./BalanceGraph.module.css";
+import { Transaction } from "@/types";
 
 interface Props {
   transactions: Transaction[];
@@ -23,7 +23,7 @@ interface CustomTooltipProps {
       balance: number;
       changeAmount: number;
       changeLabel: string;
-      changeKind: 'Debt' | 'Repayment' | 'No change';
+      changeKind: "Debt" | "Repayment" | "No change";
     };
   }>;
   label?: string;
@@ -32,8 +32,9 @@ interface CustomTooltipProps {
 const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
     const point = payload[0].payload;
-    const signedAmount = point.changeKind === 'Repayment' ? -point.changeAmount : point.changeAmount;
-    const signedAmountText = `${signedAmount >= 0 ? '+' : '-'}${Math.abs(signedAmount)}`;
+    const signedAmount =
+      point.changeKind === "Repayment" ? -point.changeAmount : point.changeAmount;
+    const signedAmountText = `${signedAmount >= 0 ? "+" : "-"}${Math.abs(signedAmount)}`;
     const valueClassName = signedAmount >= 0 ? styles.tooltipPositive : styles.tooltipNegative;
 
     return (
@@ -46,38 +47,43 @@ const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
 };
 
 export function BalanceGraph({ transactions, isDebt }: Props) {
-  const chartColor = isDebt === true ? 'var(--color-danger)' : 'var(--color-primary)';
-  const uniqueId = isDebt ? 'debt' : 'advance';
+  const chartColor = isDebt === true ? "var(--color-danger)" : "var(--color-primary)";
+  const uniqueId = isDebt ? "debt" : "advance";
   const gradientId = `colorBalance-${uniqueId}`;
 
-  const data = transactions.reduce<Array<{
-    x: string;
-    dateLabel: string;
-    balance: number;
-    changeAmount: number;
-    changeKind: 'Debt' | 'Repayment' | 'No change';
-    changeLabel: string;
-  }>>((points, t, index) => {
+  const data = transactions.reduce<
+    Array<{
+      x: string;
+      dateLabel: string;
+      balance: number;
+      changeAmount: number;
+      changeKind: "Debt" | "Repayment" | "No change";
+      changeLabel: string;
+    }>
+  >((points, t, index) => {
     const previousBalance = points.length > 0 ? points[points.length - 1].balance : 0;
     let nextBalance = previousBalance;
     let changeAmount = 0;
-    let changeKind: 'Debt' | 'Repayment' | 'No change' = 'No change';
+    let changeKind: "Debt" | "Repayment" | "No change" = "No change";
 
-    if (t.approval === 'VERIFIED') {
-      if (t.type === 'CREDIT') {
+    if (t.approval === "VERIFIED") {
+      if (t.type === "CREDIT") {
         nextBalance = previousBalance + t.originalAmount;
         changeAmount = t.originalAmount;
-        changeKind = 'Debt';
+        changeKind = "Debt";
       }
 
-      if (t.type === 'PAYMENT') {
+      if (t.type === "PAYMENT") {
         nextBalance = previousBalance - t.originalAmount;
         changeAmount = t.originalAmount;
-        changeKind = 'Repayment';
+        changeKind = "Repayment";
       }
     }
 
-    const dateLabel = new Date(t.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    const dateLabel = new Date(t.date).toLocaleDateString(undefined, {
+      month: "short",
+      day: "numeric",
+    });
 
     return [
       ...points,
@@ -87,7 +93,7 @@ export function BalanceGraph({ transactions, isDebt }: Props) {
         balance: nextBalance,
         changeAmount,
         changeKind,
-        changeLabel: nextBalance < 0 ? 'Advance' : 'Balance',
+        changeLabel: nextBalance < 0 ? "Advance" : "Balance",
       },
     ];
   }, []);
@@ -108,11 +114,22 @@ export function BalanceGraph({ transactions, isDebt }: Props) {
             tickLine={false}
             axisLine={false}
             minTickGap={CHART_TICK_GAP}
-            tickFormatter={(_, index) => data[index]?.dateLabel ?? ''}
+            tickFormatter={(_, index) => data[index]?.dateLabel ?? ""}
           />
-          <YAxis fontSize="var(--font-size-xs)" tickLine={false} axisLine={false} width={CHART_Y_AXIS_WIDTH} />
+          <YAxis
+            fontSize="var(--font-size-xs)"
+            tickLine={false}
+            axisLine={false}
+            width={CHART_Y_AXIS_WIDTH}
+          />
           <Tooltip content={<CustomTooltip />} />
-          <Area type="monotone" dataKey="balance" stroke={chartColor} fillOpacity="var(--opacity-full)" fill={`url(#${gradientId})`} />
+          <Area
+            type="monotone"
+            dataKey="balance"
+            stroke={chartColor}
+            fillOpacity="var(--opacity-full)"
+            fill={`url(#${gradientId})`}
+          />
         </AreaChart>
       </ResponsiveContainer>
     </figure>

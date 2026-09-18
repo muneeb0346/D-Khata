@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/Button';
-import styles from '@/components/ui/FormSheet.module.css';
-import formSheetStyles from '@/styles/form-sheet.module.css';
+import { useState } from "react";
+import { Button } from "@/components/ui/Button";
+import styles from "@/components/ui/FormSheet.module.css";
+import formSheetStyles from "@/styles/form-sheet.module.css";
 
 interface Props {
   onSubmit: (amount: number) => Promise<string | undefined>;
@@ -9,18 +9,18 @@ interface Props {
 }
 
 export function ReceivePayForm({ onSubmit, onCancel }: Props) {
-  const [amount, setAmount] = useState('');
+  const [amount, setAmount] = useState("");
   const [loading, setLoading] = useState(false);
-  const [amountError, setAmountError] = useState('');
-  const [submitError, setSubmitError] = useState('');
+  const [amountError, setAmountError] = useState("");
+  const [submitError, setSubmitError] = useState("");
 
   const validate = (): boolean => {
     const parsed = Number(amount);
     if (!amount || isNaN(parsed) || parsed <= 0) {
-      setAmountError('Amount must be greater than 0.');
+      setAmountError("Amount must be greater than 0.");
       return false;
     }
-    setAmountError('');
+    setAmountError("");
     return true;
   };
 
@@ -28,7 +28,7 @@ export function ReceivePayForm({ onSubmit, onCancel }: Props) {
     e.preventDefault();
     if (!validate()) return;
 
-    setSubmitError('');
+    setSubmitError("");
     setLoading(true);
     try {
       const errorMessage = await onSubmit(Number(amount));
@@ -41,15 +41,27 @@ export function ReceivePayForm({ onSubmit, onCancel }: Props) {
   };
 
   return (
-    <div className={styles.overlay} onClick={onCancel} role="dialog" aria-modal="true" aria-label="Record payment received">
+    <div
+      className={styles.overlay}
+      onClick={onCancel}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Record payment received"
+    >
       <section className={styles.sheet} onClick={(e) => e.stopPropagation()}>
         <h3 className={styles.title}>Receive Payment</h3>
 
-        {submitError && <div className={formSheetStyles['form-error-banner']} role="alert" aria-live="assertive">{submitError}</div>}
+        {submitError && (
+          <div className={formSheetStyles["form-error-banner"]} role="alert" aria-live="assertive">
+            {submitError}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="flex-col gap-md" noValidate>
           <div className="flex-col gap-sm">
-            <label htmlFor="pay-amount" className={styles.label}>Amount (Rs) *</label>
+            <label htmlFor="pay-amount" className={styles.label}>
+              Amount (Rs) *
+            </label>
             <input
               id="pay-amount"
               required
@@ -61,13 +73,19 @@ export function ReceivePayForm({ onSubmit, onCancel }: Props) {
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
             />
-            {amountError && <span className={styles.error} role="alert" aria-live="polite">{amountError}</span>}
+            {amountError && (
+              <span className={styles.error} role="alert" aria-live="polite">
+                {amountError}
+              </span>
+            )}
           </div>
 
           <div className="flex-row gap-md">
-            <Button type="button" variant="secondary" onClick={onCancel}>Cancel</Button>
+            <Button type="button" variant="secondary" onClick={onCancel}>
+              Cancel
+            </Button>
             <Button type="submit" variant="primary" disabled={loading} aria-busy={loading}>
-              {loading ? 'Processing...' : 'Receive Pay'}
+              {loading ? "Processing..." : "Receive Pay"}
             </Button>
           </div>
         </form>

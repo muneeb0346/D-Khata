@@ -7,9 +7,7 @@ describe("logger", () => {
     logger.info("test message");
     expect(spy).toHaveBeenCalled();
     expect(spy).toHaveBeenCalledWith(expect.stringMatching(/\{"level":"info"/));
-    expect(spy).toHaveBeenCalledWith(
-      expect.stringContaining('"message":"test message"'),
-    );
+    expect(spy).toHaveBeenCalledWith(expect.stringContaining('"message":"test message"'));
     spy.mockRestore();
   });
 
@@ -17,9 +15,7 @@ describe("logger", () => {
     const spy = vi.spyOn(console, "log").mockImplementation(() => {});
     logger.info("test message", { key: "value" });
     expect(spy).toHaveBeenCalledWith(expect.stringMatching(/\{"level":"info"/));
-    expect(spy).toHaveBeenCalledWith(
-      expect.stringContaining('"data":{"key":"value"}'),
-    );
+    expect(spy).toHaveBeenCalledWith(expect.stringContaining('"data":{"key":"value"}'));
     spy.mockRestore();
   });
 
@@ -28,9 +24,7 @@ describe("logger", () => {
     logger.warn("warning message");
     expect(spy).toHaveBeenCalled();
     expect(spy).toHaveBeenCalledWith(expect.stringMatching(/\{"level":"warn"/));
-    expect(spy).toHaveBeenCalledWith(
-      expect.stringContaining('"message":"warning message"'),
-    );
+    expect(spy).toHaveBeenCalledWith(expect.stringContaining('"message":"warning message"'));
     spy.mockRestore();
   });
 
@@ -38,24 +32,16 @@ describe("logger", () => {
     const spy = vi.spyOn(console, "error").mockImplementation(() => {});
     logger.error("error message");
     expect(spy).toHaveBeenCalled();
-    expect(spy).toHaveBeenCalledWith(
-      expect.stringMatching(/\{"level":"error"/),
-    );
-    expect(spy).toHaveBeenCalledWith(
-      expect.stringContaining('"message":"error message"'),
-    );
+    expect(spy).toHaveBeenCalledWith(expect.stringMatching(/\{"level":"error"/));
+    expect(spy).toHaveBeenCalledWith(expect.stringContaining('"message":"error message"'));
     spy.mockRestore();
   });
 
   it("error includes error data when provided", () => {
     const spy = vi.spyOn(console, "error").mockImplementation(() => {});
     logger.error("failed", { code: 500 });
-    expect(spy).toHaveBeenCalledWith(
-      expect.stringMatching(/\{"level":"error"/),
-    );
-    expect(spy).toHaveBeenCalledWith(
-      expect.stringContaining('"data":{"code":500}'),
-    );
+    expect(spy).toHaveBeenCalledWith(expect.stringMatching(/\{"level":"error"/));
+    expect(spy).toHaveBeenCalledWith(expect.stringContaining('"data":{"code":500}'));
     spy.mockRestore();
   });
 });

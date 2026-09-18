@@ -1,16 +1,16 @@
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/Button';
-import styles from '@/components/ui/FormSheet.module.css';
-import formSheetStyles from '@/styles/form-sheet.module.css';
-import { createCustomer, updateCustomer } from '@/server/actions';
-import { sanitizeName, formatCnic, PHONE_LENGTH, CNIC_MAX_LENGTH } from '@/utils/formatters';
-import { Customer } from '@/types';
+import React, { useState } from "react";
+import { Button } from "@/components/ui/Button";
+import styles from "@/components/ui/FormSheet.module.css";
+import formSheetStyles from "@/styles/form-sheet.module.css";
+import { createCustomer, updateCustomer } from "@/server/actions";
+import { sanitizeName, formatCnic, PHONE_LENGTH, CNIC_MAX_LENGTH } from "@/utils/formatters";
+import { Customer } from "@/types";
 
-const PHONE_PREFIX = '03';
+const PHONE_PREFIX = "03";
 const PHONE_SUFFIX_LENGTH = PHONE_LENGTH - PHONE_PREFIX.length;
 
 function sanitizePhoneSuffix(raw: string): string {
-  const digits = raw.replace(/\D/g, '');
+  const digits = raw.replace(/\D/g, "");
 
   if (digits.startsWith(PHONE_PREFIX)) {
     return digits.slice(PHONE_PREFIX.length, PHONE_LENGTH);
@@ -27,18 +27,20 @@ interface Props {
 
 export function CustomerForm({ initialData, onCancel, onSuccess }: Props) {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [name, setName] = useState(initialData?.name || '');
-  const [phoneSuffix, setPhoneSuffix] = useState(initialData?.phone?.slice(PHONE_PREFIX.length) || '');
-  const [cnic, setCnic] = useState(initialData?.cnic || '');
+  const [error, setError] = useState("");
+  const [name, setName] = useState(initialData?.name || "");
+  const [phoneSuffix, setPhoneSuffix] = useState(
+    initialData?.phone?.slice(PHONE_PREFIX.length) || "",
+  );
+  const [cnic, setCnic] = useState(initialData?.cnic || "");
 
   const isEdit = !!initialData;
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError('');
+    setError("");
     const formData = new FormData(e.currentTarget);
-    const address = (formData.get('address') as string).trim();
+    const address = (formData.get("address") as string).trim();
 
     setLoading(true);
     try {
@@ -70,22 +72,34 @@ export function CustomerForm({ initialData, onCancel, onSuccess }: Props) {
 
       onSuccess();
     } catch {
-      setError(`Failed to ${isEdit ? 'update' : 'create'} customer.`);
+      setError(`Failed to ${isEdit ? "update" : "create"} customer.`);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className={styles.overlay} onClick={onCancel} role="dialog" aria-modal="true" aria-label={`${isEdit ? 'Edit' : 'New'} customer form`}>
+    <div
+      className={styles.overlay}
+      onClick={onCancel}
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${isEdit ? "Edit" : "New"} customer form`}
+    >
       <section className={styles.sheet} onClick={(e) => e.stopPropagation()}>
-        <h2 className={styles.title}>{isEdit ? 'Edit Customer' : 'New Customer'}</h2>
+        <h2 className={styles.title}>{isEdit ? "Edit Customer" : "New Customer"}</h2>
 
-        {error && <div className={formSheetStyles['form-error-banner']} role="alert" aria-live="assertive">{error}</div>}
+        {error && (
+          <div className={formSheetStyles["form-error-banner"]} role="alert" aria-live="assertive">
+            {error}
+          </div>
+        )}
 
         <form id="new-customer-form" onSubmit={handleSubmit} className="flex-col gap-md" noValidate>
           <div className="flex-col gap-sm">
-            <label htmlFor="field-name" className={styles.label}>Name *</label>
+            <label htmlFor="field-name" className={styles.label}>
+              Name *
+            </label>
             <input
               id="field-name"
               required
@@ -98,7 +112,9 @@ export function CustomerForm({ initialData, onCancel, onSuccess }: Props) {
             />
           </div>
           <div className="flex-col gap-sm">
-            <label htmlFor="field-phone" className={styles.label}>Phone (WhatsApp) *</label>
+            <label htmlFor="field-phone" className={styles.label}>
+              Phone (WhatsApp) *
+            </label>
             <input
               id="field-phone"
               required
@@ -113,11 +129,22 @@ export function CustomerForm({ initialData, onCancel, onSuccess }: Props) {
             />
           </div>
           <div className="flex-col gap-sm">
-            <label htmlFor="field-address" className={styles.label}>Address (Optional)</label>
-            <input id="field-address" name="address" className={styles.input} placeholder="House 1, Street 2" autoComplete="street-address" defaultValue={initialData?.address || ''} />
+            <label htmlFor="field-address" className={styles.label}>
+              Address (Optional)
+            </label>
+            <input
+              id="field-address"
+              name="address"
+              className={styles.input}
+              placeholder="House 1, Street 2"
+              autoComplete="street-address"
+              defaultValue={initialData?.address || ""}
+            />
           </div>
           <div className="flex-col gap-sm">
-            <label htmlFor="field-cnic" className={styles.label}>CNIC (Optional)</label>
+            <label htmlFor="field-cnic" className={styles.label}>
+              CNIC (Optional)
+            </label>
             <input
               id="field-cnic"
               name="cnic"
@@ -132,8 +159,12 @@ export function CustomerForm({ initialData, onCancel, onSuccess }: Props) {
         </form>
 
         <div className="flex-row gap-md">
-          <Button type="button" variant="secondary" onClick={onCancel}>Cancel</Button>
-          <Button type="submit" form="new-customer-form" disabled={loading} aria-busy={loading}>{loading ? 'Saving...' : (isEdit ? 'Save Changes' : 'Add Customer')}</Button>
+          <Button type="button" variant="secondary" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button type="submit" form="new-customer-form" disabled={loading} aria-busy={loading}>
+            {loading ? "Saving..." : isEdit ? "Save Changes" : "Add Customer"}
+          </Button>
         </div>
       </section>
     </div>

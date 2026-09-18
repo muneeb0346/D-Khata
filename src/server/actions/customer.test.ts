@@ -146,15 +146,14 @@ describe("Server Actions", () => {
     });
 
     it("returns an error when name is invalid", async () => {
-      await expect(
-        createCustomer({ name: "Ali123", phone: "03001234567" }),
-      ).resolves.toEqual({ ok: false, error: "Name is required." });
+      await expect(createCustomer({ name: "Ali123", phone: "03001234567" })).resolves.toEqual({
+        ok: false,
+        error: "Name is required.",
+      });
     });
 
     it("returns an error when phone is invalid", async () => {
-      await expect(
-        createCustomer({ name: "Ali Khan", phone: "1234" }),
-      ).resolves.toEqual({
+      await expect(createCustomer({ name: "Ali Khan", phone: "1234" })).resolves.toEqual({
         ok: false,
         error: "Phone must be 11 digits starting with 03.",
       });
@@ -174,9 +173,7 @@ describe("Server Actions", () => {
         id: "existing",
       });
 
-      await expect(
-        createCustomer({ name: "Ali Khan", phone: "03001234567" }),
-      ).resolves.toEqual({
+      await expect(createCustomer({ name: "Ali Khan", phone: "03001234567" })).resolves.toEqual({
         ok: false,
         error: "A customer with this phone number or CNIC already exists.",
       });
@@ -200,15 +197,14 @@ describe("Server Actions", () => {
     });
 
     it("returns an error when name is empty", async () => {
-      await expect(
-        createCustomer({ name: "", phone: "03001234567" }),
-      ).resolves.toEqual({ ok: false, error: "Name is required." });
+      await expect(createCustomer({ name: "", phone: "03001234567" })).resolves.toEqual({
+        ok: false,
+        error: "Name is required.",
+      });
     });
 
     it("returns an error when phone format is invalid", async () => {
-      await expect(
-        createCustomer({ name: "Ali", phone: "123" }),
-      ).resolves.toEqual({
+      await expect(createCustomer({ name: "Ali", phone: "123" })).resolves.toEqual({
         ok: false,
         error: "Phone must be 11 digits starting with 03.",
       });
@@ -225,9 +221,7 @@ describe("Server Actions", () => {
         cnic: "12345-1234567-1",
       };
 
-      mocks.queryMock.customers.findFirst
-        .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce(null);
+      mocks.queryMock.customers.findFirst.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
       mocks.returningMock.mockResolvedValueOnce([updatedCustomer]);
 
       const result = await updateCustomer("c1", {
@@ -244,12 +238,9 @@ describe("Server Actions", () => {
     it("returns an error when another customer exists during update", async () => {
       mocks.queryMock.customers.findFirst.mockResolvedValueOnce({ id: "c2" });
 
-      await expect(
-        updateCustomer("c1", { name: "Ali", phone: "03001234567" }),
-      ).resolves.toEqual({
+      await expect(updateCustomer("c1", { name: "Ali", phone: "03001234567" })).resolves.toEqual({
         ok: false,
-        error:
-          "Another customer with this phone number or CNIC already exists.",
+        error: "Another customer with this phone number or CNIC already exists.",
       });
     });
   });

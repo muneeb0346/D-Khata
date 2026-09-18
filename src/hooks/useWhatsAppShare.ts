@@ -7,9 +7,7 @@ export function useWhatsAppShare(customerId: string, customerPhone?: string) {
     if (typeof window === "undefined" || !customerPhone) return null;
 
     const url = `${window.location.origin}/khata/${customerId}`;
-    const text = encodeURIComponent(
-      `Please verify your D-Khata ledger: ${url}`,
-    );
+    const text = encodeURIComponent(`Please verify your D-Khata ledger: ${url}`);
 
     let phone = customerPhone;
     if (phone.startsWith("0")) {

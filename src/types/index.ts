@@ -1,6 +1,6 @@
-export type ApprovalStatus = 'PENDING' | 'VERIFIED' | 'DISPUTED';
-export type SettlementStatus = 'UNPAID' | 'PARTIAL' | 'SETTLED' | 'ADVANCE';
-export type TransactionType = 'CREDIT' | 'PAYMENT';
+export type ApprovalStatus = "PENDING" | "VERIFIED" | "DISPUTED";
+export type SettlementStatus = "UNPAID" | "PARTIAL" | "SETTLED" | "ADVANCE";
+export type TransactionType = "CREDIT" | "PAYMENT";
 
 export interface Customer {
   id: string;

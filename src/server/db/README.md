@@ -6,12 +6,12 @@ PostgreSQL (NeonDB) managed via Drizzle ORM. Schema defined in `src/server/db/sc
 
 ## Files
 
-| File | Responsibility |
-|------|---------------|
-| `src/server/db/schema.ts` | Drizzle ORM table definitions, enums, indexes |
-| `src/server/db/index.ts` | NeonDB connection pool + drizzle instance |
-| `src/server/db/migrations/` | Versioned migration files (SQL) |
-| `drizzle.config.ts` | ORM config: schema path, output dir, dialect |
+| File                        | Responsibility                                |
+| --------------------------- | --------------------------------------------- |
+| `src/server/db/schema.ts`   | Drizzle ORM table definitions, enums, indexes |
+| `src/server/db/index.ts`    | NeonDB connection pool + drizzle instance     |
+| `src/server/db/migrations/` | Versioned migration files (SQL)               |
+| `drizzle.config.ts`         | ORM config: schema path, output dir, dialect  |
 
 ## Schema Diagram
 
@@ -28,9 +28,9 @@ customers (1) ──────< (N) transactions
 
 ## Enums
 
-| Type | Values | Used In |
-|------|--------|---------|
-| `approval_status` | PENDING, VERIFIED, DISPUTED | transactions.approval |
+| Type                | Values                            | Used In                 |
+| ------------------- | --------------------------------- | ----------------------- |
+| `approval_status`   | PENDING, VERIFIED, DISPUTED       | transactions.approval   |
 | `settlement_status` | UNPAID, PARTIAL, SETTLED, ADVANCE | transactions.settlement |
 
 ## Migration Workflow
@@ -58,11 +58,11 @@ npx drizzle-kit migrate --config drizzle.config.ts
 
 ## Index Strategy
 
-| Index | Columns | Purpose |
-|-------|---------|---------|
-| `idx_transactions_customer_date` | customer_id, date | `getLedger()` chronological read, `processPayment()` FIFO |
-| `idx_transactions_customer_approval` | customer_id, approval | `addPendingCredit()` lock check, `resolveTransaction()` |
-| `idx_transactions_pending_per_customer` (partial) | customer_id WHERE approval='PENDING' | Race condition prevention for consensus lock |
+| Index                                             | Columns                              | Purpose                                                   |
+| ------------------------------------------------- | ------------------------------------ | --------------------------------------------------------- |
+| `idx_transactions_customer_date`                  | customer_id, date                    | `getLedger()` chronological read, `processPayment()` FIFO |
+| `idx_transactions_customer_approval`              | customer_id, approval                | `addPendingCredit()` lock check, `resolveTransaction()`   |
+| `idx_transactions_pending_per_customer` (partial) | customer_id WHERE approval='PENDING' | Race condition prevention for consensus lock              |
 
 ## Critical Constraint: Consensus Lock
 
@@ -80,11 +80,11 @@ When a concurrent request attempts to insert a second PENDING transaction for th
 
 All monetary values use `integer` (cents). Example: Rs. 100.50 = `10050`.
 
-| Column | Type | Notes |
-|--------|------|-------|
-| `total_balance` | integer | Net balance: verified credits - verified payments |
-| `original_amount` | integer | Transaction amount in cents |
-| `remaining_balance` | integer | Outstanding amount after payments in cents |
+| Column              | Type    | Notes                                             |
+| ------------------- | ------- | ------------------------------------------------- |
+| `total_balance`     | integer | Net balance: verified credits - verified payments |
+| `original_amount`   | integer | Transaction amount in cents                       |
+| `remaining_balance` | integer | Outstanding amount after payments in cents        |
 
 ## Transaction Isolation
 
@@ -92,6 +92,6 @@ All multi-step writes use `db.transaction()` (Drizzle ORM) which maps to Postgre
 
 ## Environment
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `DATABASE_URL` | Yes | PostgreSQL/NeonDB connection string |
+| Variable       | Required | Description                         |
+| -------------- | -------- | ----------------------------------- |
+| `DATABASE_URL` | Yes      | PostgreSQL/NeonDB connection string |

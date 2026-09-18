@@ -16,9 +16,7 @@ describe("validateCustomerData", () => {
   });
 
   it("CNIC empty/undefined → valid (optional)", () => {
-    expect(
-      validateCustomerData({ name: "Ali Khan", phone: "03001234567" }),
-    ).toBeNull();
+    expect(validateCustomerData({ name: "Ali Khan", phone: "03001234567" })).toBeNull();
     expect(
       validateCustomerData({
         name: "Ali Khan",

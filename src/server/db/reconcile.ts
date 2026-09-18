@@ -17,9 +17,7 @@ export function reconcileLedger(
   customer: Customer,
   txns: Transaction[],
 ): { customer: Customer; transactions: Transaction[] } {
-  const ordered = [...txns].sort(
-    (a, b) => getTxDateValue(a) - getTxDateValue(b),
-  );
+  const ordered = [...txns].sort((a, b) => getTxDateValue(a) - getTxDateValue(b));
   const remainingByCreditId = new Map<string, number>();
   const creditQueue: string[] = [];
   let carriedAdvance = 0;

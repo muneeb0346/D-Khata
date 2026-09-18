@@ -1,25 +1,25 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { CustomerList } from '@/components/dashboard/CustomerList';
-import { CustomerForm } from '@/components/dashboard/NewCustomerForm';
-import { ActiveLedgerView } from '@/components/dashboard/ActiveLedgerView';
-import { Button } from '@/components/ui/Button';
-import { getCustomers } from '@/server/actions';
-import { Customer } from '@/types';
-import { logger } from '@/utils/logger';
-import pageStyles from './page.module.css';
+import { useState, useEffect, useCallback, useRef } from "react";
+import { CustomerList } from "@/components/dashboard/CustomerList";
+import { CustomerForm } from "@/components/dashboard/NewCustomerForm";
+import { ActiveLedgerView } from "@/components/dashboard/ActiveLedgerView";
+import { Button } from "@/components/ui/Button";
+import { getCustomers } from "@/server/actions";
+import { Customer } from "@/types";
+import { logger } from "@/utils/logger";
+import pageStyles from "./page.module.css";
 
-const DASHBOARD_CUSTOMER_KEY = 'd-khata.dashboard.customerId';
+const DASHBOARD_CUSTOMER_KEY = "d-khata.dashboard.customerId";
 
 export default function Dashboard() {
-  const [view, setView] = useState<'list' | 'new' | 'ledger'>(() => {
-    if (typeof window === 'undefined') return 'list';
+  const [view, setView] = useState<"list" | "new" | "ledger">(() => {
+    if (typeof window === "undefined") return "list";
 
-    return window.localStorage.getItem(DASHBOARD_CUSTOMER_KEY) ? 'ledger' : 'list';
+    return window.localStorage.getItem(DASHBOARD_CUSTOMER_KEY) ? "ledger" : "list";
   });
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(() => {
-    if (typeof window === 'undefined') return null;
+    if (typeof window === "undefined") return null;
 
     return window.localStorage.getItem(DASHBOARD_CUSTOMER_KEY);
   });
@@ -28,7 +28,7 @@ export default function Dashboard() {
   const [isMounted, setIsMounted] = useState(false);
   const hasViewHistoryEntryRef = useRef(false);
   const ignoreNextPopStateRef = useRef(false);
-  const viewRef = useRef<'list' | 'new' | 'ledger'>(view);
+  const viewRef = useRef<"list" | "new" | "ledger">(view);
   const selectedCustomerIdRef = useRef<string | null>(selectedCustomerId);
 
   const fetchAllCustomers = async () => {
@@ -37,7 +37,9 @@ export default function Dashboard() {
       const data = await getCustomers();
       setCustomers(data);
     } catch (e) {
-      logger.error('Failed to fetch customers', { error: e instanceof Error ? e.message : String(e) });
+      logger.error("Failed to fetch customers", {
+        error: e instanceof Error ? e.message : String(e),
+      });
     } finally {
       setIsLoading(false);
     }
@@ -45,11 +47,11 @@ export default function Dashboard() {
 
   const handleSelectCustomer = useCallback((id: string) => {
     setSelectedCustomerId(id);
-    setView('ledger');
+    setView("ledger");
   }, []);
 
   const handleBackToList = useCallback(() => {
-    setView('list');
+    setView("list");
     setSelectedCustomerId(null);
   }, []);
 
@@ -57,13 +59,17 @@ export default function Dashboard() {
     viewRef.current = view;
     selectedCustomerIdRef.current = selectedCustomerId;
 
-    if (view !== 'list' && !hasViewHistoryEntryRef.current) {
-      window.history.pushState({ ...window.history.state, dKhataDashboardView: view }, '', window.location.href);
+    if (view !== "list" && !hasViewHistoryEntryRef.current) {
+      window.history.pushState(
+        { ...window.history.state, dKhataDashboardView: view },
+        "",
+        window.location.href,
+      );
       hasViewHistoryEntryRef.current = true;
       return;
     }
 
-    if (view === 'list' && hasViewHistoryEntryRef.current) {
+    if (view === "list" && hasViewHistoryEntryRef.current) {
       ignoreNextPopStateRef.current = true;
       hasViewHistoryEntryRef.current = false;
       window.history.back();
@@ -77,13 +83,13 @@ export default function Dashboard() {
         return;
       }
 
-      const state = event.state as { dKhataDashboardView?: 'new' | 'ledger' } | null;
+      const state = event.state as { dKhataDashboardView?: "new" | "ledger" } | null;
 
       if (state?.dKhataDashboardView) {
         hasViewHistoryEntryRef.current = true;
 
         if (viewRef.current !== state.dKhataDashboardView) {
-          if (state.dKhataDashboardView === 'ledger' && !selectedCustomerIdRef.current) {
+          if (state.dKhataDashboardView === "ledger" && !selectedCustomerIdRef.current) {
             const savedCustomerId = window.localStorage.getItem(DASHBOARD_CUSTOMER_KEY);
             if (savedCustomerId) {
               setSelectedCustomerId(savedCustomerId);
@@ -96,15 +102,15 @@ export default function Dashboard() {
         return;
       }
 
-      if (viewRef.current !== 'list') {
+      if (viewRef.current !== "list") {
         hasViewHistoryEntryRef.current = false;
         setSelectedCustomerId(null);
-        setView('list');
+        setView("list");
       }
     };
 
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 
   useEffect(() => {
@@ -112,7 +118,7 @@ export default function Dashboard() {
       setIsMounted(true);
     }, 0);
 
-    if (view === 'list') {
+    if (view === "list") {
       const fetchTimerId = window.setTimeout(() => {
         void fetchAllCustomers();
       }, 0);
@@ -127,7 +133,7 @@ export default function Dashboard() {
   }, [view]);
 
   useEffect(() => {
-    if (view === 'ledger' && selectedCustomerId) {
+    if (view === "ledger" && selectedCustomerId) {
       window.localStorage.setItem(DASHBOARD_CUSTOMER_KEY, selectedCustomerId);
       return;
     }
@@ -147,9 +153,9 @@ export default function Dashboard() {
     <main className="flex-col w-full h-full layout-container">
       <h1 className="sr-only">D-Khata Merchant Dashboard</h1>
 
-      {(view === 'list' || view === 'new') && (
+      {(view === "list" || view === "new") && (
         <>
-          <header className={`p-md ${pageStyles['layout-header']}`} role="banner">
+          <header className={`p-md ${pageStyles["layout-header"]}`} role="banner">
             D-Khata Dashboard
           </header>
           <CustomerList
@@ -158,25 +164,16 @@ export default function Dashboard() {
             onSelectCustomer={handleSelectCustomer}
           />
           <footer className="sticky-bottom">
-            <Button onClick={() => setView('new')}>Add New Customer</Button>
+            <Button onClick={() => setView("new")}>Add New Customer</Button>
           </footer>
         </>
       )}
 
-      {view === 'new' && (
-        <CustomerForm
-          onCancel={handleBackToList}
-          onSuccess={handleBackToList}
-        />
-      )}
+      {view === "new" && <CustomerForm onCancel={handleBackToList} onSuccess={handleBackToList} />}
 
-      {view === 'ledger' && selectedCustomerId && (
-        <ActiveLedgerView
-          customerId={selectedCustomerId}
-          onBack={handleBackToList}
-        />
+      {view === "ledger" && selectedCustomerId && (
+        <ActiveLedgerView customerId={selectedCustomerId} onBack={handleBackToList} />
       )}
-
     </main>
   );
 }

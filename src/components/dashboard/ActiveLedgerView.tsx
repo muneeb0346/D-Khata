@@ -84,7 +84,11 @@ export function ActiveLedgerView({ customerId, onBack }: Props) {
   useEffect(() => {
     activeFormRef.current = activeForm;
     if (activeForm && !hasModalHistoryEntryRef.current) {
-      window.history.pushState({ ...window.history.state, dKhataModal: true }, "", window.location.href);
+      window.history.pushState(
+        { ...window.history.state, dKhataModal: true },
+        "",
+        window.location.href,
+      );
       hasModalHistoryEntryRef.current = true;
       return;
     }
@@ -125,8 +129,12 @@ export function ActiveLedgerView({ customerId, onBack }: Props) {
         <div className="card-base flex-col gap-sm">
           <strong className="text-debt">{error}</strong>
           <div className="flex-row gap-md">
-            <Button variant="secondary" onClick={onBack} className={wAutoStyles['w-auto']}>← Back</Button>
-            <Button variant="primary" onClick={() => fetchLedger()}>Try Again</Button>
+            <Button variant="secondary" onClick={onBack} className={wAutoStyles["w-auto"]}>
+              ← Back
+            </Button>
+            <Button variant="primary" onClick={() => fetchLedger()}>
+              Try Again
+            </Button>
           </div>
         </div>
       </article>

@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/Button';
-import styles from '@/components/ui/FormSheet.module.css';
-import formSheetStyles from '@/styles/form-sheet.module.css';
+import { useState } from "react";
+import { Button } from "@/components/ui/Button";
+import styles from "@/components/ui/FormSheet.module.css";
+import formSheetStyles from "@/styles/form-sheet.module.css";
 
 interface Props {
   onSubmit: (data: { amount: number; description: string }) => Promise<string | undefined>;
@@ -9,29 +9,29 @@ interface Props {
 }
 
 export function AddCreditForm({ onSubmit, onCancel }: Props) {
-  const [description, setDescription] = useState('');
-  const [amount, setAmount] = useState('');
+  const [description, setDescription] = useState("");
+  const [amount, setAmount] = useState("");
   const [loading, setLoading] = useState(false);
-  const [descError, setDescError] = useState('');
-  const [amountError, setAmountError] = useState('');
-  const [submitError, setSubmitError] = useState('');
+  const [descError, setDescError] = useState("");
+  const [amountError, setAmountError] = useState("");
+  const [submitError, setSubmitError] = useState("");
 
   const validate = (): boolean => {
     let valid = true;
 
     if (!description.trim()) {
-      setDescError('Description is required.');
+      setDescError("Description is required.");
       valid = false;
     } else {
-      setDescError('');
+      setDescError("");
     }
 
     const parsed = Number(amount);
     if (!amount || isNaN(parsed) || parsed <= 0) {
-      setAmountError('Amount must be greater than 0.');
+      setAmountError("Amount must be greater than 0.");
       valid = false;
     } else {
-      setAmountError('');
+      setAmountError("");
     }
 
     return valid;
@@ -41,10 +41,13 @@ export function AddCreditForm({ onSubmit, onCancel }: Props) {
     e.preventDefault();
     if (!validate()) return;
 
-    setSubmitError('');
+    setSubmitError("");
     setLoading(true);
     try {
-      const errorMessage = await onSubmit({ amount: Number(amount), description: description.trim() });
+      const errorMessage = await onSubmit({
+        amount: Number(amount),
+        description: description.trim(),
+      });
       if (errorMessage) {
         setSubmitError(errorMessage);
       }
@@ -54,15 +57,27 @@ export function AddCreditForm({ onSubmit, onCancel }: Props) {
   };
 
   return (
-    <div className={styles.overlay} onClick={onCancel} role="dialog" aria-modal="true" aria-label="Add credit transaction">
+    <div
+      className={styles.overlay}
+      onClick={onCancel}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Add credit transaction"
+    >
       <section className={styles.sheet} onClick={(e) => e.stopPropagation()}>
         <h3 className={styles.title}>Add Credit</h3>
 
-        {submitError && <div className={formSheetStyles['form-error-banner']} role="alert" aria-live="assertive">{submitError}</div>}
+        {submitError && (
+          <div className={formSheetStyles["form-error-banner"]} role="alert" aria-live="assertive">
+            {submitError}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="flex-col gap-md" noValidate>
           <div className="flex-col gap-sm">
-            <label htmlFor="credit-desc" className={styles.label}>Description *</label>
+            <label htmlFor="credit-desc" className={styles.label}>
+              Description *
+            </label>
             <input
               id="credit-desc"
               required
@@ -72,11 +87,17 @@ export function AddCreditForm({ onSubmit, onCancel }: Props) {
               onChange={(e) => setDescription(e.target.value)}
               autoComplete="off"
             />
-            {descError && <span className={styles.error} role="alert" aria-live="polite">{descError}</span>}
+            {descError && (
+              <span className={styles.error} role="alert" aria-live="polite">
+                {descError}
+              </span>
+            )}
           </div>
 
           <div className="flex-col gap-sm">
-            <label htmlFor="credit-amount" className={styles.label}>Amount (Rs) *</label>
+            <label htmlFor="credit-amount" className={styles.label}>
+              Amount (Rs) *
+            </label>
             <input
               id="credit-amount"
               required
@@ -88,13 +109,19 @@ export function AddCreditForm({ onSubmit, onCancel }: Props) {
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
             />
-            {amountError && <span className={styles.error} role="alert" aria-live="polite">{amountError}</span>}
+            {amountError && (
+              <span className={styles.error} role="alert" aria-live="polite">
+                {amountError}
+              </span>
+            )}
           </div>
 
           <div className="flex-row gap-md">
-            <Button type="button" variant="secondary" onClick={onCancel}>Cancel</Button>
+            <Button type="button" variant="secondary" onClick={onCancel}>
+              Cancel
+            </Button>
             <Button type="submit" variant="danger" disabled={loading} aria-busy={loading}>
-              {loading ? 'Adding...' : 'Add Credit'}
+              {loading ? "Adding..." : "Add Credit"}
             </Button>
           </div>
         </form>

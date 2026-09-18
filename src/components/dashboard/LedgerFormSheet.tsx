@@ -14,13 +14,7 @@ interface Props {
   onCancel: () => void;
 }
 
-export function LedgerFormSheet({
-  activeForm,
-  customer,
-  customerId,
-  onSuccess,
-  onCancel,
-}: Props) {
+export function LedgerFormSheet({ activeForm, customer, customerId, onSuccess, onCancel }: Props) {
   const handleCreditSubmit = async (data: { amount: number; description: string }) => {
     try {
       const result = await addPendingCredit(customerId, data);
