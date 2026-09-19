@@ -43,6 +43,7 @@ Translating this real-world workflow into a reliable application required solvin
 D-Khata/
 ├── src/
 │   ├── app/                # Next.js App Router (Frontend Pages & Routing)
+│   │   ├── api/            # HTTP endpoints (e.g. health check)
 │   │   ├── khata/          # Customer-specific ledger routes (WhatsApp targets)
 │   │   └── layout.tsx      # Root layout
 │   ├── components/         # Reusable React components (Modular CSS)
@@ -50,13 +51,19 @@ D-Khata/
 │   │   ├── dashboard/      # Main dashboard views & interactive forms
 │   │   ├── khata/          # Ledger-specific UI components
 │   │   └── ui/             # Core UI elements (Buttons, Modals, Spinners)
+│   ├── hooks/              # Custom React hooks (share, clipboard)
 │   ├── server/             # Backend operations
-│   │   ├── db/             # Drizzle ORM setup & Postgres schemas
-│   │   ├── actions.ts      # Next.js Server Actions (Business logic & locks)
-│   │   └── actions.test.ts # Vitest backend unit tests
-│   ├── styles/             # Global CSS & reset configurations
+│   │   ├── actions/        # Server Actions split by domain (customer, ledger) + barrel
+│   │   ├── db/             # Drizzle ORM setup, Postgres schemas, migrations, reconcile
+│   │   └── lib/            # Pure business logic (validation, schemas)
+│   ├── styles/             # Global CSS, reset, and shared component styles
 │   ├── types/              # TypeScript interfaces and global types
-│   └── utils/              # Helper utilities (e.g., data formatters)
+│   ├── utils/              # Helper utilities (formatters, structured logger)
+│   └── instrumentation-*.ts # Sentry SDK wiring (client/server)
+├── sentry.*.config.ts     # Sentry client/server/build config
+├── Dockerfile             # Containerized app runtime
+├── docker-compose.yml     # App + Postgres 16 services
+├── .prettierrc            # Prettier formatting config
 ├── drizzle.config.ts       # Database ORM configuration
 ├── vitest.config.ts        # Unit testing configuration
 ├── next.config.ts          # Next.js framework configuration
@@ -152,13 +159,14 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 This project includes a GitHub Actions CI pipeline that runs on every push and pull request. The pipeline executes:
 
 - **Lint**: `npm run lint` (ESLint with Next.js config)
+- **Format Check**: `npx prettier --check .` (Prettier with `.prettierrc`)
 - **Type Check**: `npx tsc --noEmit` (strict TypeScript check)
 - **Tests**: `npm run test -- --coverage` (Vitest with 70% line coverage threshold)
 - **Dependency Audit**: `npm audit --audit-level=high` (fails on high/critical vulnerabilities)
 
 Check the [Actions tab](https://github.com/muneeb0346/D-Khata/actions) for build status.
 
-**Current coverage:** 93.4% lines across 278 tests in 22 spec files.
+**Current coverage:** 93.4% lines across 278 tests in 12 spec files.
 
 ## Environment Variables
 
